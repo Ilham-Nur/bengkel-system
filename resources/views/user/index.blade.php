@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $role = request('role', 'admin');
+    $role = auth()->user()?->role ?? 'pelanggan';
     $rows = [
         ['nama' => 'Super Admin', 'hp' => '0812-0000-0001', 'role' => 'admin'],
         ['nama' => 'Budi Santoso', 'hp' => '0812-3456-7890', 'role' => 'pelanggan'],

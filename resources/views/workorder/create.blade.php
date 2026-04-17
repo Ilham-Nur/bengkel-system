@@ -48,7 +48,7 @@
 
         <div class="form-action">
             <button type="button" class="btn btn-primary"><i class="bi bi-save"></i> Simpan</button>
-            <a href="{{ route('workorder.index', ['role' => request('role', 'admin')]) }}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Kembali</a>
+            <a href="{{ route('workorder.index') }}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Kembali</a>
         </div>
     </form>
 </section>

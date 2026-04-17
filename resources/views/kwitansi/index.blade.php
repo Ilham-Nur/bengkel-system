@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $role = request('role', 'admin');
+    $role = auth()->user()?->role ?? 'pelanggan';
     $rows = [
         ['invoice' => 'INV-2026-0012', 'nama' => 'Budi Santoso', 'plat' => 'B 1234 XYZ'],
         ['invoice' => 'INV-2026-0013', 'nama' => 'Rina Wijaya', 'plat' => 'D 8888 KM'],

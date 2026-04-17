@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $role = request('role', 'admin');
+    $role = auth()->user()?->role ?? 'pelanggan';
     $rows = [
         ['no' => 'WO-2026-0001', 'nama' => 'Budi Santoso', 'plat' => 'B 1234 XYZ', 'tgl' => '2026-04-16', 'status' => 'process'],
         ['no' => 'WO-2026-0002', 'nama' => 'Rina Wijaya', 'plat' => 'D 8888 KM', 'tgl' => '2026-04-17', 'status' => 'draft'],
@@ -19,7 +19,7 @@
     <div class="panel-head">
         <strong>List Work Order</strong>
         @if ($role === 'admin')
-            <a href="{{ route('workorder.create', ['role' => $role]) }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah Work Order</a>
+            <a href="{{ route('workorder.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah Work Order</a>
         @endif
     </div>
 
@@ -46,7 +46,7 @@
                         <td>
                             <a href="#" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
                             @if ($role === 'admin')
-                                <a href="{{ route('workorder.create', ['mode' => 'edit', 'role' => $role]) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
+                                <a href="{{ route('workorder.create', ['mode' => 'edit']) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
                                 <button class="btn btn-danger btn-delete"><i class="bi bi-trash3"></i> Delete</button>
                             @endif
                         </td>
@@ -67,7 +67,7 @@
                 <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.6rem;">
                     <a href="#" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
                     @if ($role === 'admin')
-                        <a href="{{ route('workorder.create', ['mode' => 'edit', 'role' => $role]) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
+                        <a href="{{ route('workorder.create', ['mode' => 'edit']) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
                         <button class="btn btn-danger btn-delete"><i class="bi bi-trash3"></i> Delete</button>
                     @endif
                 </div>

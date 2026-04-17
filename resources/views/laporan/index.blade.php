@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $role = request('role', 'admin');
+    $role = auth()->user()?->role ?? 'pelanggan';
     $rows = [
         ['service' => 'SV-2026-0101', 'nama' => 'Budi Santoso', 'plat' => 'B 1234 XYZ', 'jenis' => 'Honda Vario', 'km' => '12.000'],
         ['service' => 'SV-2026-0102', 'nama' => 'Rina Wijaya', 'plat' => 'D 8888 KM', 'jenis' => 'Yamaha NMAX', 'km' => '18.500'],
@@ -43,7 +43,7 @@
                             <a href="#" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
                             @if ($role === 'admin')
                                 <a href="#" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
-                                <a href="{{ route('kwitansi.index', ['role' => $role]) }}" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> Convert</a>
+                                <a href="{{ route('kwitansi.index') }}" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> Convert</a>
                             @endif
                         </td>
                     </tr>
@@ -64,7 +64,7 @@
                     <a href="#" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
                     @if ($role === 'admin')
                         <a href="#" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
-                        <a href="{{ route('kwitansi.index', ['role' => $role]) }}" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> Convert</a>
+                        <a href="{{ route('kwitansi.index') }}" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> Convert</a>
                     @endif
                 </div>
             </article>
