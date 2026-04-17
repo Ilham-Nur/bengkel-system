@@ -103,7 +103,11 @@
                 </div>
 
                 <div class="service-photo-inputs" data-item-index="{{ $index }}"></div>
-                <button type="button" class="btn btn-light add-photo-btn" data-item-index="{{ $index }}"><i class="bi bi-plus-circle"></i> Tambah Foto Service</button>
+                <div class="photo-action-row">
+                    <button type="button" class="btn btn-light add-photo-btn" data-item-index="{{ $index }}" data-source="gallery"><i class="bi bi-images"></i> Ambil dari Galeri</button>
+                    <button type="button" class="btn btn-primary add-photo-btn" data-item-index="{{ $index }}" data-source="camera"><i class="bi bi-camera"></i> Ambil dari Kamera</button>
+                </div>
+                <small class="helper-text">Di HP: tombol kamera akan membuka kamera langsung, tombol galeri untuk pilih foto yang sudah ada.</small>
             </div>
         </article>
     @endforeach
@@ -119,14 +123,17 @@
 <script>
     const form = document.getElementById('laporanForm');
 
-    function addServicePhotoInput(itemIndex) {
+    function addServicePhotoInput(itemIndex, source = 'gallery') {
         const container = document.querySelector(`.service-photo-inputs[data-item-index="${itemIndex}"]`);
         const nextIndex = container.querySelectorAll('.new-photo-row').length;
+        const captureAttribute = source === 'camera' ? 'capture="environment"' : '';
+        const sourceLabel = source === 'camera' ? 'Kamera HP' : 'Galeri';
 
         const wrapper = document.createElement('div');
         wrapper.className = 'new-photo-row';
         wrapper.innerHTML = `
-            <input class="input" type="file" name="items[${itemIndex}][photos][${nextIndex}]" accept="image/*">
+            <div class="source-badge">Sumber: ${sourceLabel}</div>
+            <input class="input" type="file" name="items[${itemIndex}][photos][${nextIndex}]" accept="image/*" ${captureAttribute}>
             <input class="input" type="text" name="items[${itemIndex}][photo_descriptions][${nextIndex}]" placeholder="Deskripsi foto service">
             <button type="button" class="btn btn-danger btn-remove-photo"><i class="bi bi-trash3"></i> Hapus</button>
         `;
@@ -140,9 +147,9 @@
 
     document.querySelectorAll('.add-photo-btn').forEach((button) => {
         const itemIndex = button.dataset.itemIndex;
-        addServicePhotoInput(itemIndex);
+        const source = button.dataset.source || 'gallery';
 
-        button.addEventListener('click', () => addServicePhotoInput(itemIndex));
+        button.addEventListener('click', () => addServicePhotoInput(itemIndex, source));
     });
 
     document.querySelectorAll('.preview-image').forEach((image) => {
@@ -223,6 +230,31 @@
         gap: .45rem;
         margin-bottom: .5rem;
         grid-template-columns: 1fr;
+    }
+
+    .photo-action-row {
+        display:flex;
+        flex-wrap:wrap;
+        gap:.5rem;
+        margin-top:.35rem;
+    }
+
+    .helper-text {
+        display:block;
+        color:#64748b;
+        font-size:.78rem;
+        margin-top:.35rem;
+    }
+
+    .source-badge {
+        display:inline-block;
+        background:#e2e8f0;
+        color:#334155;
+        border-radius:999px;
+        padding:.2rem .55rem;
+        font-size:.72rem;
+        font-weight:600;
+        width:fit-content;
     }
 
     @media (min-width: 900px) {
