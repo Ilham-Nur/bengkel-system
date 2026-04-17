@@ -18,6 +18,12 @@ class LaporanController extends Controller
         abort_unless(auth()->user()?->isAdmin(), 403);
     }
 
+    private function ensureCanView(WorkOrder $workOrder): void
+    {
+        $user = auth()->user();
+        abort_unless($user?->isAdmin() || $workOrder->user_id === $user?->id, 403);
+    }
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -33,6 +39,22 @@ class LaporanController extends Controller
 
         return view('laporan.index', [
             'workOrders' => $query->paginate(10)->withQueryString(),
+        ]);
+    }
+
+    public function show(WorkOrder $workorder): View
+    {
+        $this->ensureCanView($workorder);
+
+        $workorder->load([
+            'customer:id,name,email,username',
+            'complaintItems.photos',
+            'serviceReport.items.photos',
+        ]);
+
+        return view('laporan.show', [
+            'workOrder' => $workorder,
+            'report' => $workorder->serviceReport,
         ]);
     }
 

@@ -61,10 +61,9 @@
                             @endif
                         </td>
                         <td>
+                            <a href="{{ route('laporan.show', $item) }}" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
                             @if ($role === 'admin')
                                 <a href="{{ route('laporan.form', $item) }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah Laporan</a>
-                            @else
-                                <span class="status process">View only</span>
                             @endif
                         </td>
                     </tr>
@@ -107,11 +106,12 @@
                     @endif
                 </div>
 
-                @if ($role === 'admin')
-                    <div style="display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.65rem;">
+                <div style="display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.65rem;">
+                    <a href="{{ route('laporan.show', $item) }}" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
+                    @if ($role === 'admin')
                         <a href="{{ route('laporan.form', $item) }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah Laporan</a>
-                    </div>
-                @endif
+                    @endif
+                </div>
             </article>
         @empty
             <article class="info-card" style="text-align:center; color:#64748b;">Belum ada data work order.</article>
