@@ -5,7 +5,7 @@
 @section('content')
     <section class="login-shell">
         <aside class="login-showcase">
-            <img src="{{ asset('images/reno-motor-logo.svg') }}" alt="Logo Reno Motor">
+            <img src="{{ asset('images/reno_motor.jpeg') }}" alt="Logo Reno Motor">
             <h2>Reno Motor</h2>
             <p>Selamat datang di sistem manajemen bengkel. Pantau work order, laporan, dan kwitansi dalam satu dashboard yang ringkas.</p>
             <div class="login-contact">
