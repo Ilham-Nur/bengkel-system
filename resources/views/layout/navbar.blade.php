@@ -1,10 +1,14 @@
 @php
+    $role = request('role', 'admin');
     $menu = [
         ['label' => 'Work Order', 'icon' => 'bi-clipboard-check', 'route' => 'workorder.index'],
         ['label' => 'Laporan', 'icon' => 'bi-file-earmark-text', 'route' => 'laporan.index'],
         ['label' => 'Kwitansi', 'icon' => 'bi-receipt', 'route' => 'kwitansi.index'],
-        ['label' => 'Pelanggan', 'icon' => 'bi-people', 'route' => 'pelanggan.index'],
     ];
+
+    if ($role === 'admin') {
+        $menu[] = ['label' => 'User', 'icon' => 'bi-people', 'route' => 'user.index'];
+    }
 @endphp
 
 <header class="topbar">
@@ -12,7 +16,7 @@
         <div class="brand"><i class="bi bi-tools"></i> Bengkel Motor</div>
         <nav class="desktop-menu">
             @foreach ($menu as $item)
-                <a href="{{ route($item['route'], ['role' => request('role', 'admin')]) }}" class="{{ request()->routeIs($item['route']) ? 'active' : '' }}">
+                <a href="{{ route($item['route'], ['role' => $role]) }}" class="{{ request()->routeIs($item['route']) ? 'active' : '' }}">
                     <i class="bi {{ $item['icon'] }}"></i> {{ $item['label'] }}
                 </a>
             @endforeach
@@ -21,9 +25,9 @@
     </div>
 </header>
 
-<nav class="mobile-nav">
+<nav class="mobile-nav" style="grid-template-columns: repeat({{ count($menu) + 1 }}, 1fr);">
     @foreach ($menu as $item)
-        <a href="{{ route($item['route'], ['role' => request('role', 'admin')]) }}" class="{{ request()->routeIs($item['route']) ? 'active' : '' }}">
+        <a href="{{ route($item['route'], ['role' => $role]) }}" class="{{ request()->routeIs($item['route']) ? 'active' : '' }}">
             <i class="bi {{ $item['icon'] }}"></i>
             <span>{{ $item['label'] }}</span>
         </a>

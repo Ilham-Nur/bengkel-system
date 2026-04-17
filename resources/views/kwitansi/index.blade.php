@@ -39,8 +39,9 @@
                         <td>{{ $item['nama'] }}</td>
                         <td>{{ $item['plat'] }}</td>
                         <td>
-                            <button class="btn btn-light"><i class="bi bi-printer"></i> Print</button>
+                            <button class="btn btn-light"><i class="bi bi-eye"></i> Detail</button>
                             @if ($role === 'admin')
+                                <button class="btn btn-light"><i class="bi bi-printer"></i> Print</button>
                                 <button class="btn btn-success btn-lunas"><i class="bi bi-patch-check"></i> Stamp Lunas</button>
                             @endif
                         </td>
@@ -57,8 +58,9 @@
                 <div class="kv"><span class="key">Customer</span><strong>{{ $item['nama'] }}</strong></div>
                 <div class="kv"><span class="key">Plat</span><span>{{ $item['plat'] }}</span></div>
                 <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.6rem;">
-                    <button class="btn btn-light"><i class="bi bi-printer"></i> Print</button>
+                    <button class="btn btn-light"><i class="bi bi-eye"></i> Detail</button>
                     @if ($role === 'admin')
+                        <button class="btn btn-light"><i class="bi bi-printer"></i> Print</button>
                         <button class="btn btn-success btn-lunas"><i class="bi bi-patch-check"></i> Stamp Lunas</button>
                     @endif
                 </div>
