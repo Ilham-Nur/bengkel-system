@@ -5,6 +5,28 @@
 @section('content')
 <h1 class="page-title">Edit Work Order</h1>
 <section class="form-page form-page-wide">
+    @php
+        $initialComplaintItems = old('complaint_items');
+
+        if (! is_array($initialComplaintItems)) {
+            $initialComplaintItems = $workOrder->complaintItems->map(function ($item) {
+                return [
+                    'keluhan_item' => $item->keluhan_item,
+                    'rekomendasi_perbaikan' => $item->rekomendasi_perbaikan,
+                    'sparepart' => $item->sparepart,
+                    'estimasi_biaya' => $item->estimasi_biaya,
+                    'existing_photos' => $item->photos->map(function ($photo) {
+                        return [
+                            'path' => $photo->photo_path,
+                            'description' => $photo->photo_description,
+                            'url' => asset('storage/'.$photo->photo_path),
+                        ];
+                    })->values()->all(),
+                ];
+            })->values()->all();
+        }
+    @endphp
+
     @if ($errors->any())
         <div class="flash flash-error">
             <strong>Validasi gagal.</strong>
@@ -90,19 +112,7 @@
     const customerMeta = document.getElementById('customer_meta');
     const grandTotal = document.getElementById('grandTotal');
     const formEdit = document.getElementById('workOrderFormEdit');
-    const existingData = @json(old('complaint_items', $workOrder->complaintItems->map(function ($item) {
-        return [
-            'keluhan_item' => $item->keluhan_item,
-            'rekomendasi_perbaikan' => $item->rekomendasi_perbaikan,
-            'sparepart' => $item->sparepart,
-            'estimasi_biaya' => $item->estimasi_biaya,
-            'existing_photos' => $item->photos->map(fn ($photo) => [
-                'path' => $photo->photo_path,
-                'description' => $photo->photo_description,
-                'url' => asset('storage/'.$photo->photo_path),
-            ])->values(),
-        ];
-    })->values()));
+    const existingData = @json($initialComplaintItems);
 
     let complaintIndex = 0;
 
