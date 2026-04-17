@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('login.index'));
@@ -25,6 +26,18 @@ Route::middleware('auth')->group(function () {
     Route::view('/laporan', 'laporan.index')->name('laporan.index');
     Route::view('/kwitansi', 'kwitansi.index')->name('kwitansi.index');
 
-    Route::get('/user', [LoginController::class, 'indexUser'])->name('user.index');
+    Route::middleware(function ($request, $next) {
+        if (! $request->user()?->isAdmin()) {
+            return redirect()->route('workorder.index');
+        }
+
+        return $next($request);
+    })->group(function () {
+        Route::get('/user', [UserController::class, 'index'])->name('user.index');
+        Route::post('/user', [UserController::class, 'store'])->name('user.store');
+        Route::put('/user/{user}', [UserController::class, 'update'])->name('user.update');
+        Route::delete('/user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+    });
+
     Route::redirect('/pelanggan', '/workorder')->name('pelanggan.index');
 });
