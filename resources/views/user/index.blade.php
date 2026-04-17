@@ -61,6 +61,35 @@
             <strong>List User</strong>
         </div>
 
+        <div class="filter-wrap">
+            <form method="GET" action="{{ route('user.index') }}" class="filter-grid">
+                <div>
+                    <label for="q">Pencarian</label>
+                    <input class="input" id="q" name="q" value="{{ $filters['q'] }}" placeholder="Nama, username, email">
+                </div>
+                <div>
+                    <label for="start_date">Dari Tanggal</label>
+                    <input class="input" id="start_date" name="start_date" type="date" value="{{ $filters['start_date'] }}">
+                </div>
+                <div>
+                    <label for="end_date">Sampai Tanggal</label>
+                    <input class="input" id="end_date" name="end_date" type="date" value="{{ $filters['end_date'] }}">
+                </div>
+                <div>
+                    <label for="per_page">Data / Halaman</label>
+                    <select class="input" id="per_page" name="per_page">
+                        @foreach ([5, 10, 25] as $limit)
+                            <option value="{{ $limit }}" @selected((int) $filters['per_page'] === $limit)>{{ $limit }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="filter-actions full">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Terapkan</button>
+                    <a href="{{ route('user.index') }}" class="btn btn-light"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+                </div>
+            </form>
+        </div>
+
         <div class="table-wrap desktop-only">
             <table>
                 <thead>
@@ -117,10 +146,23 @@
                 <article class="info-card" style="color:var(--muted);">Belum ada data user.</article>
             @endforelse
         </div>
+
+        <div class="pagination-wrap">
+            {{ $users->links() }}
+        </div>
     </section>
 @endsection
 
 @push('scripts')
+<style>
+    .filter-wrap { padding: 1rem; border-bottom: var(--border); }
+    .filter-grid { display: grid; gap: .8rem; grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .filter-actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: end; }
+    .pagination-wrap { padding: .9rem 1rem 1rem; }
+    @media (min-width: 768px) {
+        .filter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+</style>
 <script>
     const errorMessages = @json($errors->all());
     const successMessage = @json(session('success'));

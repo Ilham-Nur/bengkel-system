@@ -28,6 +28,14 @@ class WorkOrderController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user();
+        $search = trim((string) $request->string('q', ''));
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $perPage = (int) $request->input('per_page', 10);
+
+        if (! in_array($perPage, [5, 10, 25], true)) {
+            $perPage = 10;
+        }
 
         $query = WorkOrder::query()
             ->with(['customer:id,name', 'complaintItems'])
@@ -38,8 +46,31 @@ class WorkOrderController extends Controller
             $query->where('user_id', $user?->id);
         }
 
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('no_wo', 'like', "%{$search}%")
+                    ->orWhere('jenis_motor', 'like', "%{$search}%")
+                    ->orWhere('plat_nomor', 'like', "%{$search}%")
+                    ->orWhereHas('customer', fn ($customerQuery) => $customerQuery->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        if (filled($startDate)) {
+            $query->whereDate('tanggal', '>=', $startDate);
+        }
+
+        if (filled($endDate)) {
+            $query->whereDate('tanggal', '<=', $endDate);
+        }
+
         return view('workorder.index', [
-            'workOrders' => $query->paginate(10)->withQueryString(),
+            'workOrders' => $query->paginate($perPage)->withQueryString(),
+            'filters' => [
+                'q' => $search,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
