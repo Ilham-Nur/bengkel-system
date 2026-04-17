@@ -25,4 +25,10 @@ class WorkOrderComplaintItem extends Model
     {
         return $this->hasMany(WorkOrderComplaintPhoto::class, 'work_order_complaint_item_id');
     }
+
+    public function serviceReportItems(): HasMany
+    {
+        return $this->hasMany(ServiceReportItem::class, 'work_order_complaint_item_id');
+    }
 }
+

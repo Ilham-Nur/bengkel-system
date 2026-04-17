@@ -1,0 +1,217 @@
+@extends('layout.app')
+
+@section('title', 'Tambah Laporan Pekerjaan')
+
+@section('content')
+<h1 class="page-title">Tambah Laporan Pekerjaan</h1>
+
+<section class="panel" style="padding:1rem;">
+    <h3 style="margin-top:0;">Detail Work Order</h3>
+    <div class="form-grid">
+        <div>
+            <label>No WO</label>
+            <input class="input" value="{{ $workOrder->no_wo }}" readonly>
+        </div>
+        <div>
+            <label>Tanggal WO</label>
+            <input class="input" value="{{ $workOrder->tanggal }}" readonly>
+        </div>
+        <div>
+            <label>Customer</label>
+            <input class="input" value="{{ $workOrder->customer?->name ?? '-' }}" readonly>
+        </div>
+        <div>
+            <label>Jenis Motor</label>
+            <input class="input" value="{{ $workOrder->jenis_motor }}" readonly>
+        </div>
+        <div>
+            <label>Plat Nomor</label>
+            <input class="input" value="{{ $workOrder->plat_nomor }}" readonly>
+        </div>
+        <div>
+            <label>KM Motor</label>
+            <input class="input" value="{{ number_format($workOrder->km_motor, 0, ',', '.') }}" readonly>
+        </div>
+    </div>
+</section>
+
+<form action="{{ route('laporan.save', $workOrder) }}" method="POST" enctype="multipart/form-data" id="laporanForm" class="panel" style="padding:1rem;">
+    @csrf
+
+    <div class="form-grid">
+        <div class="full">
+            <label for="service_finished_at">Tanggal & Jam Selesai Service</label>
+            <input class="input" type="datetime-local" id="service_finished_at" name="service_finished_at"
+                value="{{ old('service_finished_at', optional($report?->service_finished_at)->format('Y-m-d\\TH:i')) }}" required>
+            @error('service_finished_at')
+                <small style="color:#b91c1c;">{{ $message }}</small>
+            @enderror
+        </div>
+    </div>
+
+    <h3>Item Keluhan dari Work Order</h3>
+    <p style="margin-top:0; color:#64748b;">Menampilkan detail item keluhan + foto keluhan + rekomendasi perbaikan, lalu isi hasil service dan upload foto service (bisa lebih dari 1).</p>
+
+    @foreach ($workOrder->complaintItems as $index => $complaint)
+        @php
+            $reportItem = $report?->items?->firstWhere('work_order_complaint_item_id', $complaint->id);
+        @endphp
+
+        <article class="complaint-card">
+            <input type="hidden" name="items[{{ $index }}][complaint_item_id]" value="{{ $complaint->id }}">
+
+            <div class="complaint-col">
+                <h4>Keluhan #{{ $index + 1 }}</h4>
+                <div class="kv"><span class="key">Keluhan Item</span><strong>{{ $complaint->keluhan_item }}</strong></div>
+                <div class="kv"><span class="key">Rekomendasi Perbaikan</span><span>{{ $complaint->rekomendasi_perbaikan ?: '-' }}</span></div>
+
+                <label style="margin-top:.75rem;">Foto Keluhan</label>
+                <div class="photo-grid">
+                    @forelse ($complaint->photos as $photo)
+                        <figure class="photo-card">
+                            <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="Foto keluhan">
+                            @if ($photo->photo_description)
+                                <figcaption>{{ $photo->photo_description }}</figcaption>
+                            @endif
+                        </figure>
+                    @empty
+                        <div style="color:#64748b; font-size:.86rem;">Belum ada foto keluhan.</div>
+                    @endforelse
+                </div>
+            </div>
+
+            <div class="complaint-col">
+                <h4>Hasil Service</h4>
+                <label>Deskripsi Hasil Service</label>
+                <textarea name="items[{{ $index }}][service_description]" placeholder="Contoh: Pembersihan karburator, ganti oli, setel ulang rem belakang">{{ old("items.$index.service_description", $reportItem?->service_description) }}</textarea>
+                @error("items.$index.service_description")
+                    <small style="color:#b91c1c;">{{ $message }}</small>
+                @enderror
+
+                <label style="margin-top:.75rem;">Foto Service (bisa lebih dari 1)</label>
+                <div class="existing-service-photos">
+                    @foreach ($reportItem?->photos ?? [] as $existingIndex => $photo)
+                        <div class="existing-photo-row">
+                            <input type="hidden" name="items[{{ $index }}][existing_photo_paths][{{ $existingIndex }}]" value="{{ $photo->photo_path }}">
+                            <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="Foto service lama">
+                            <input type="text" class="input" name="items[{{ $index }}][existing_photo_descriptions][{{ $existingIndex }}]" value="{{ old("items.$index.existing_photo_descriptions.$existingIndex", $photo->photo_description) }}" placeholder="Deskripsi foto service">
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="service-photo-inputs" data-item-index="{{ $index }}"></div>
+                <button type="button" class="btn btn-light add-photo-btn" data-item-index="{{ $index }}"><i class="bi bi-plus-circle"></i> Tambah Foto Service</button>
+            </div>
+        </article>
+    @endforeach
+
+    <div class="form-action">
+        <a href="{{ route('laporan.index') }}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Kembali</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan Laporan</button>
+    </div>
+</form>
+@endsection
+
+@push('scripts')
+<script>
+    const form = document.getElementById('laporanForm');
+
+    function addServicePhotoInput(itemIndex) {
+        const container = document.querySelector(`.service-photo-inputs[data-item-index="${itemIndex}"]`);
+        const nextIndex = container.querySelectorAll('.new-photo-row').length;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'new-photo-row';
+        wrapper.innerHTML = `
+            <input class="input" type="file" name="items[${itemIndex}][photos][${nextIndex}]" accept="image/*">
+            <input class="input" type="text" name="items[${itemIndex}][photo_descriptions][${nextIndex}]" placeholder="Deskripsi foto service">
+            <button type="button" class="btn btn-danger btn-remove-photo"><i class="bi bi-trash3"></i> Hapus</button>
+        `;
+
+        wrapper.querySelector('.btn-remove-photo').addEventListener('click', () => {
+            wrapper.remove();
+        });
+
+        container.appendChild(wrapper);
+    }
+
+    document.querySelectorAll('.add-photo-btn').forEach((button) => {
+        const itemIndex = button.dataset.itemIndex;
+        addServicePhotoInput(itemIndex);
+
+        button.addEventListener('click', () => addServicePhotoInput(itemIndex));
+    });
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Simpan laporan pekerjaan?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, simpan',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+</script>
+
+<style>
+    .complaint-card {
+        border: var(--border);
+        border-radius: 12px;
+        padding: .9rem;
+        margin-bottom: .9rem;
+        display: grid;
+        gap: .9rem;
+        grid-template-columns: 1fr;
+    }
+
+    .complaint-col h4 { margin: 0 0 .6rem; }
+
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: .6rem;
+    }
+
+    .photo-card {
+        margin: 0;
+        border: var(--border);
+        border-radius: 10px;
+        padding: .35rem;
+        background: #fff;
+    }
+
+    .photo-card img,
+    .existing-photo-row img {
+        width: 100%;
+        max-height: 150px;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block;
+    }
+
+    .photo-card figcaption {
+        margin-top: .35rem;
+        font-size: .8rem;
+        color: #64748b;
+    }
+
+    .existing-photo-row,
+    .new-photo-row {
+        display: grid;
+        gap: .45rem;
+        margin-bottom: .5rem;
+        grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 900px) {
+        .complaint-card { grid-template-columns: 1fr 1fr; }
+        .new-photo-row { grid-template-columns: 1.15fr 1fr auto; align-items: center; }
+        .existing-photo-row { grid-template-columns: 130px 1fr; align-items: center; }
+    }
+</style>
+@endpush

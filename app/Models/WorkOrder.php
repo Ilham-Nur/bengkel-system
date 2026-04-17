@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'no_wo',
@@ -27,4 +28,10 @@ class WorkOrder extends Model
     {
         return $this->hasMany(WorkOrderComplaintItem::class);
     }
+
+    public function serviceReport(): HasOne
+    {
+        return $this->hasOne(ServiceReport::class);
+    }
 }
+

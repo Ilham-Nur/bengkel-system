@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkOrderController;
@@ -23,7 +24,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/workorder/{workorder}', [WorkOrderController::class, 'update'])->name('workorder.update');
     Route::delete('/workorder/{workorder}', [WorkOrderController::class, 'destroy'])->name('workorder.destroy');
 
-    Route::view('/laporan', 'laporan.index')->name('laporan.index');
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/{workorder}/form', [LaporanController::class, 'form'])->name('laporan.form');
+    Route::post('/laporan/{workorder}', [LaporanController::class, 'save'])->name('laporan.save');
     Route::view('/kwitansi', 'kwitansi.index')->name('kwitansi.index');
 
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
