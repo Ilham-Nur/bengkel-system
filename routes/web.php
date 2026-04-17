@@ -26,18 +26,10 @@ Route::middleware('auth')->group(function () {
     Route::view('/laporan', 'laporan.index')->name('laporan.index');
     Route::view('/kwitansi', 'kwitansi.index')->name('kwitansi.index');
 
-    Route::middleware(function ($request, $next) {
-        if (! $request->user()?->isAdmin()) {
-            return redirect()->route('workorder.index');
-        }
-
-        return $next($request);
-    })->group(function () {
-        Route::get('/user', [UserController::class, 'index'])->name('user.index');
-        Route::post('/user', [UserController::class, 'store'])->name('user.store');
-        Route::put('/user/{user}', [UserController::class, 'update'])->name('user.update');
-        Route::delete('/user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
-    });
+    Route::get('/user', [UserController::class, 'index'])->name('user.index');
+    Route::post('/user', [UserController::class, 'store'])->name('user.store');
+    Route::put('/user/{user}', [UserController::class, 'update'])->name('user.update');
+    Route::delete('/user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
 
     Route::redirect('/pelanggan', '/workorder')->name('pelanggan.index');
 });
