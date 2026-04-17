@@ -10,10 +10,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'service_report_id',
     'work_order_complaint_item_id',
+    'service_finished_at',
     'service_description',
 ])]
 class ServiceReportItem extends Model
 {
+    protected function casts(): array
+    {
+        return [
+            'service_finished_at' => 'datetime',
+        ];
+    }
+
     public function report(): BelongsTo
     {
         return $this->belongsTo(ServiceReport::class, 'service_report_id');

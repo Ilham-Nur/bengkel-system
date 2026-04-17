@@ -38,19 +38,8 @@
 <form action="{{ route('laporan.save', $workOrder) }}" method="POST" enctype="multipart/form-data" id="laporanForm" class="panel" style="padding:1rem;">
     @csrf
 
-    <div class="form-grid">
-        <div class="full">
-            <label for="service_finished_at">Tanggal & Jam Selesai Service</label>
-            <input class="input" type="datetime-local" id="service_finished_at" name="service_finished_at"
-                value="{{ old('service_finished_at', optional($report?->service_finished_at)->format('Y-m-d\\TH:i')) }}" required>
-            @error('service_finished_at')
-                <small style="color:#b91c1c;">{{ $message }}</small>
-            @enderror
-        </div>
-    </div>
-
     <h3>Item Keluhan dari Work Order</h3>
-    <p style="margin-top:0; color:#64748b;">Menampilkan detail item keluhan + foto keluhan + rekomendasi perbaikan, lalu isi hasil service dan upload foto service (bisa lebih dari 1).</p>
+    <p style="margin-top:0; color:#64748b;">Setiap item keluhan punya tanggal & jam selesai service masing-masing. Foto dapat diklik agar tampil lebih jelas.</p>
 
     @foreach ($workOrder->complaintItems as $index => $complaint)
         @php
@@ -69,7 +58,7 @@
                 <div class="photo-grid">
                     @forelse ($complaint->photos as $photo)
                         <figure class="photo-card">
-                            <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="Foto keluhan">
+                            <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="Foto keluhan" class="preview-image" data-preview-src="{{ asset('storage/' . $photo->photo_path) }}" data-preview-caption="{{ $photo->photo_description ?: 'Foto keluhan' }}">
                             @if ($photo->photo_description)
                                 <figcaption>{{ $photo->photo_description }}</figcaption>
                             @endif
@@ -82,7 +71,21 @@
 
             <div class="complaint-col">
                 <h4>Hasil Service</h4>
-                <label>Deskripsi Hasil Service</label>
+
+                <label for="service_finished_at_{{ $index }}">Tanggal & Jam Selesai (Keluhan #{{ $index + 1 }})</label>
+                <input
+                    class="input"
+                    type="datetime-local"
+                    id="service_finished_at_{{ $index }}"
+                    name="items[{{ $index }}][service_finished_at]"
+                    value="{{ old("items.$index.service_finished_at", optional($reportItem?->service_finished_at)->format('Y-m-d\\TH:i')) }}"
+                    required
+                >
+                @error("items.$index.service_finished_at")
+                    <small style="color:#b91c1c;">{{ $message }}</small>
+                @enderror
+
+                <label style="margin-top:.75rem;">Deskripsi Hasil Service</label>
                 <textarea name="items[{{ $index }}][service_description]" placeholder="Contoh: Pembersihan karburator, ganti oli, setel ulang rem belakang">{{ old("items.$index.service_description", $reportItem?->service_description) }}</textarea>
                 @error("items.$index.service_description")
                     <small style="color:#b91c1c;">{{ $message }}</small>
@@ -93,7 +96,7 @@
                     @foreach ($reportItem?->photos ?? [] as $existingIndex => $photo)
                         <div class="existing-photo-row">
                             <input type="hidden" name="items[{{ $index }}][existing_photo_paths][{{ $existingIndex }}]" value="{{ $photo->photo_path }}">
-                            <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="Foto service lama">
+                            <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="Foto service lama" class="preview-image" data-preview-src="{{ asset('storage/' . $photo->photo_path) }}" data-preview-caption="{{ $photo->photo_description ?: 'Foto service' }}">
                             <input type="text" class="input" name="items[{{ $index }}][existing_photo_descriptions][{{ $existingIndex }}]" value="{{ old("items.$index.existing_photo_descriptions.$existingIndex", $photo->photo_description) }}" placeholder="Deskripsi foto service">
                         </div>
                     @endforeach
@@ -142,6 +145,19 @@
         button.addEventListener('click', () => addServicePhotoInput(itemIndex));
     });
 
+    document.querySelectorAll('.preview-image').forEach((image) => {
+        image.addEventListener('click', () => {
+            Swal.fire({
+                title: image.dataset.previewCaption || 'Preview Foto',
+                imageUrl: image.dataset.previewSrc,
+                imageAlt: image.alt || 'Preview foto',
+                width: '92%',
+                showCloseButton: true,
+                showConfirmButton: false,
+            });
+        });
+    });
+
     form.addEventListener('submit', (event) => {
         event.preventDefault();
         Swal.fire({
@@ -173,7 +189,7 @@
 
     .photo-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: .6rem;
     }
 
@@ -188,10 +204,11 @@
     .photo-card img,
     .existing-photo-row img {
         width: 100%;
-        max-height: 150px;
+        max-height: 220px;
         object-fit: cover;
         border-radius: 8px;
         display: block;
+        cursor: zoom-in;
     }
 
     .photo-card figcaption {
@@ -211,7 +228,7 @@
     @media (min-width: 900px) {
         .complaint-card { grid-template-columns: 1fr 1fr; }
         .new-photo-row { grid-template-columns: 1.15fr 1fr auto; align-items: center; }
-        .existing-photo-row { grid-template-columns: 130px 1fr; align-items: center; }
+        .existing-photo-row { grid-template-columns: 170px 1fr; align-items: center; }
     }
 </style>
 @endpush

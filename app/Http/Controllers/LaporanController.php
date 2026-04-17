@@ -45,11 +45,9 @@ class LaporanController extends Controller
             'serviceReport.items.photos',
         ]);
 
-        $report = $workorder->serviceReport;
-
         return view('laporan.form', [
             'workOrder' => $workorder,
-            'report' => $report,
+            'report' => $workorder->serviceReport,
         ]);
     }
 
@@ -58,9 +56,9 @@ class LaporanController extends Controller
         $this->ensureAdmin();
 
         $validated = $request->validate([
-            'service_finished_at' => ['required', 'date'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.complaint_item_id' => ['required', 'exists:work_order_complaint_items,id'],
+            'items.*.service_finished_at' => ['required', 'date'],
             'items.*.service_description' => ['nullable', 'string'],
             'items.*.photos' => ['nullable', 'array'],
             'items.*.photos.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
@@ -86,10 +84,6 @@ class LaporanController extends Controller
                     ->values();
             }
 
-            $report->update([
-                'service_finished_at' => $validated['service_finished_at'],
-            ]);
-
             $report->items()->delete();
 
             $keptOld = collect();
@@ -98,6 +92,7 @@ class LaporanController extends Controller
             foreach ($validated['items'] as $index => $item) {
                 $reportItem = $report->items()->create([
                     'work_order_complaint_item_id' => $item['complaint_item_id'],
+                    'service_finished_at' => $item['service_finished_at'],
                     'service_description' => $item['service_description'] ?? null,
                 ]);
 
