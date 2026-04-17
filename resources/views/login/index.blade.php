@@ -28,9 +28,9 @@
             </button>
         </form>
 
-        <div class="role-box" style="margin-top:1rem;">
+        {{-- <div class="role-box" style="margin-top:1rem;">
             Demo akun: <strong>admin</strong> (role admin) dan <strong>pelanggan</strong> (role pelanggan).<br>
             Password default: <strong>password</strong>
-        </div>
+        </div> --}}
     </section>
 @endsection
