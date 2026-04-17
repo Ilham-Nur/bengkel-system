@@ -21,7 +21,8 @@
         <div class="form-grid">
             <div>
                 <label for="no_wo">No. WO</label>
-                <input class="input" id="no_wo" name="no_wo" value="{{ old('no_wo') }}" placeholder="Contoh: WO-2026-0004" required>
+                <input class="input" id="no_wo" value="{{ $generatedNoWo }}" readonly>
+                <small class="input-note">Nomor WO dibuat otomatis saat simpan data.</small>
             </div>
             <div>
                 <label for="user_id">Pelanggan</label>
@@ -179,6 +180,7 @@
 
 <style>
     .divider { border: 0; border-top: 1px solid #e2e8f0; margin: 1rem 0; }
+    .input-note { margin-top: .35rem; display: inline-block; color: #64748b; font-size: .78rem; }
     .flash { border-radius: 10px; padding: .75rem .9rem; margin-bottom: .9rem; font-size: .9rem; }
     .flash ul { margin: .5rem 0 0 1rem; padding: 0; }
     .flash-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }

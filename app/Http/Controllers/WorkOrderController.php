@@ -27,6 +27,7 @@ class WorkOrderController extends Controller
 
         return view('workorder.create', [
             'customers' => $customers,
+            'generatedNoWo' => $this->generateNoWo(),
         ]);
     }
 
@@ -35,7 +36,6 @@ class WorkOrderController extends Controller
         $this->ensureAdmin();
 
         $validated = $request->validate([
-            'no_wo' => ['required', 'string', 'max:100', 'unique:work_orders,no_wo'],
             'user_id' => ['required', 'exists:users,id'],
             'tanggal' => ['required', 'date'],
             'jenis_motor' => ['required', 'string', 'max:255'],
@@ -53,12 +53,13 @@ class WorkOrderController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $validated): void {
+            $generatedNoWo = $this->generateNoWo(withLock: true);
             $totalKeluhanBiaya = collect($validated['complaint_items'])->sum(
                 fn (array $item): float => (float) $item['estimasi_biaya']
             );
 
             $workOrder = WorkOrder::query()->create([
-                'no_wo' => $validated['no_wo'],
+                'no_wo' => $generatedNoWo,
                 'user_id' => $validated['user_id'],
                 'tanggal' => $validated['tanggal'],
                 'jenis_motor' => $validated['jenis_motor'],
@@ -94,5 +95,28 @@ class WorkOrderController extends Controller
         });
 
         return redirect()->route('workorder.index')->with('success', 'Work order berhasil dibuat.');
+    }
+
+    private function generateNoWo(bool $withLock = false): string
+    {
+        $year = now()->format('Y');
+        $prefix = "WO-$year-";
+
+        $query = WorkOrder::query()
+            ->where('no_wo', 'like', $prefix.'%')
+            ->orderByDesc('id');
+
+        if ($withLock) {
+            $query->lockForUpdate();
+        }
+
+        $latestNoWo = $query->value('no_wo');
+        $lastSequence = 0;
+
+        if (is_string($latestNoWo) && preg_match('/^WO-\d{4}-(\d{4})$/', $latestNoWo, $matches)) {
+            $lastSequence = (int) $matches[1];
+        }
+
+        return $prefix.str_pad((string) ($lastSequence + 1), 4, '0', STR_PAD_LEFT);
     }
 }
