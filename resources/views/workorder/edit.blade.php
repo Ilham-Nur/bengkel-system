@@ -258,7 +258,7 @@
     .photo-row { display:grid; gap:.5rem; grid-template-columns:1fr 1fr auto; align-items:center; }
     .existing-photo-grid { display:grid; gap:.6rem; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); margin-bottom:.55rem; }
     .existing-photo-card { border:1px solid #cbd5e1; border-radius:10px; padding:.5rem; background:#fff; display:grid; gap:.4rem; }
-    .existing-photo-card img { width:100%; height:110px; object-fit:cover; border-radius:8px; }
+    .existing-photo-card img { width:100%; aspect-ratio:1 / 1; object-fit:contain; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0; }
     .photo-help { color:#64748b; font-size:.75rem; }
     .summary-box { margin-top:1rem; border-radius:10px; padding:.75rem .9rem; display:flex; justify-content:space-between; background:#eff6ff; border:1px solid #bfdbfe; }
 

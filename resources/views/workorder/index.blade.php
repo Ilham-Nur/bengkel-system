@@ -41,6 +41,7 @@
                         <td>{{ $item->plat_nomor }}</td>
                         <td>Rp {{ number_format($item->total_keluhan_biaya, 0, ',', '.') }}</td>
                         <td>
+                            <a href="{{ route('workorder.pdf', $item) }}" target="_blank" class="btn btn-light"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
                             @if ($role === 'admin')
                                 <a href="{{ route('workorder.edit', $item) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
                                 <form action="{{ route('workorder.destroy', $item) }}" method="POST" class="inline-form form-delete" data-confirm-title="Hapus Work Order?" data-confirm-text="Data akan dihapus permanen.">
@@ -71,6 +72,9 @@
                 <div class="kv"><span class="key">Motor</span><span>{{ $item->jenis_motor }}</span></div>
                 <div class="kv"><span class="key">Plat</span><span>{{ $item->plat_nomor }}</span></div>
                 <div class="kv"><span class="key">Total</span><strong>Rp {{ number_format($item->total_keluhan_biaya, 0, ',', '.') }}</strong></div>
+                <div class="mobile-actions">
+                    <a href="{{ route('workorder.pdf', $item) }}" target="_blank" class="btn btn-light"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+                </div>
                 @if ($role === 'admin')
                     <div class="mobile-actions">
                         <a href="{{ route('workorder.edit', $item) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>

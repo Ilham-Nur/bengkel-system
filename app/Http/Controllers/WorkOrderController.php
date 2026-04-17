@@ -19,6 +19,12 @@ class WorkOrderController extends Controller
         abort_unless(auth()->user()?->isAdmin(), 403);
     }
 
+    private function ensureCanView(WorkOrder $workOrder): void
+    {
+        $user = auth()->user();
+        abort_unless($user?->isAdmin() || $workOrder->user_id === $user?->id, 403);
+    }
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -94,6 +100,17 @@ class WorkOrderController extends Controller
         return view('workorder.edit', [
             'workOrder' => $workorder,
             'customers' => $customers,
+        ]);
+    }
+
+    public function exportPdf(WorkOrder $workorder): View
+    {
+        $this->ensureCanView($workorder);
+
+        $workorder->load(['customer:id,name,email,username', 'complaintItems.photos']);
+
+        return view('workorder.pdf', [
+            'workOrder' => $workorder,
         ]);
     }
 

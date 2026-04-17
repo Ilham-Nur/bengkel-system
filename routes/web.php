@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/workorder/form', [WorkOrderController::class, 'create'])->name('workorder.create');
     Route::post('/workorder', [WorkOrderController::class, 'store'])->name('workorder.store');
     Route::get('/workorder/{workorder}/edit', [WorkOrderController::class, 'edit'])->name('workorder.edit');
+    Route::get('/workorder/{workorder}/pdf', [WorkOrderController::class, 'exportPdf'])->name('workorder.pdf');
     Route::put('/workorder/{workorder}', [WorkOrderController::class, 'update'])->name('workorder.update');
     Route::delete('/workorder/{workorder}', [WorkOrderController::class, 'destroy'])->name('workorder.destroy');
 
