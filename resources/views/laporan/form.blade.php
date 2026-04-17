@@ -49,6 +49,16 @@
         <article class="complaint-card">
             <input type="hidden" name="items[{{ $index }}][complaint_item_id]" value="{{ $complaint->id }}">
 
+            <div class="full item-progress-box">
+                <label class="progress-check">
+                    <input type="checkbox" class="item-completed-toggle" data-item-index="{{ $index }}" name="items[{{ $index }}][is_completed]" value="1"
+                        @checked((bool) old("items.$index.is_completed", $reportItem ? 1 : 0))
+                    >
+                    <span>Keluhan ini sudah dikerjakan / siap disimpan</span>
+                </label>
+                <small class="helper-text">Checklist hanya keluhan yang ingin disimpan sekarang. Jadi bisa simpan 1 per 1 atau sekaligus semua.</small>
+            </div>
+
             <div class="complaint-col">
                 <h4>Keluhan #{{ $index + 1 }}</h4>
                 <div class="kv"><span class="key">Keluhan Item</span><strong>{{ $complaint->keluhan_item }}</strong></div>
@@ -69,7 +79,7 @@
                 </div>
             </div>
 
-            <div class="complaint-col">
+            <div class="complaint-col service-fields" data-item-index="{{ $index }}">
                 <h4>Hasil Service</h4>
 
                 <label for="service_finished_at_{{ $index }}">Tanggal & Jam Selesai (Keluhan #{{ $index + 1 }})</label>
@@ -79,7 +89,6 @@
                     id="service_finished_at_{{ $index }}"
                     name="items[{{ $index }}][service_finished_at]"
                     value="{{ old("items.$index.service_finished_at", optional($reportItem?->service_finished_at)->format('Y-m-d\\TH:i')) }}"
-                    required
                 >
                 @error("items.$index.service_finished_at")
                     <small style="color:#b91c1c;">{{ $message }}</small>
@@ -164,6 +173,34 @@
             });
         });
     });
+    function toggleServiceFields(itemIndex, enabled) {
+        const container = document.querySelector(`.service-fields[data-item-index="${itemIndex}"]`);
+        if (!container) return;
+
+        container.querySelectorAll('input, textarea, button').forEach((el) => {
+            if (el.classList.contains('add-photo-btn')) {
+                el.disabled = !enabled;
+                return;
+            }
+
+            if (el.type === 'hidden') return;
+
+            el.disabled = !enabled;
+        });
+
+        container.style.opacity = enabled ? '1' : '0.55';
+        container.style.pointerEvents = enabled ? 'auto' : 'none';
+    }
+
+    document.querySelectorAll('.item-completed-toggle').forEach((checkbox) => {
+        const itemIndex = checkbox.dataset.itemIndex;
+        toggleServiceFields(itemIndex, checkbox.checked);
+
+        checkbox.addEventListener('change', () => {
+            toggleServiceFields(itemIndex, checkbox.checked);
+        });
+    });
+
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();
@@ -193,6 +230,26 @@
     }
 
     .complaint-col h4 { margin: 0 0 .6rem; }
+    .complaint-card .full { grid-column: 1 / -1; }
+
+    .item-progress-box {
+        border: var(--border);
+        border-radius: 10px;
+        padding: .65rem .75rem;
+        background: #f8fafc;
+    }
+
+    .progress-check {
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+    }
+
+    .progress-check input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
 
     .photo-grid {
         display: grid;

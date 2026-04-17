@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 class LaporanController extends Controller
@@ -55,10 +56,11 @@ class LaporanController extends Controller
     {
         $this->ensureAdmin();
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'items' => ['required', 'array', 'min:1'],
             'items.*.complaint_item_id' => ['required', 'exists:work_order_complaint_items,id'],
-            'items.*.service_finished_at' => ['required', 'date'],
+            'items.*.is_completed' => ['nullable', 'boolean'],
+            'items.*.service_finished_at' => ['nullable', 'date'],
             'items.*.service_description' => ['nullable', 'string'],
             'items.*.photos' => ['nullable', 'array'],
             'items.*.photos.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
@@ -69,6 +71,18 @@ class LaporanController extends Controller
             'items.*.existing_photo_descriptions' => ['nullable', 'array'],
             'items.*.existing_photo_descriptions.*' => ['nullable', 'string', 'max:500'],
         ]);
+
+        $validator->after(function ($validator) use ($request): void {
+            foreach ($request->input('items', []) as $index => $item) {
+                $isCompleted = (bool) ($item['is_completed'] ?? false);
+
+                if ($isCompleted && blank($item['service_finished_at'] ?? null)) {
+                    $validator->errors()->add("items.$index.service_finished_at", 'Tanggal & jam selesai wajib diisi jika keluhan ditandai selesai.');
+                }
+            }
+        });
+
+        $validated = $validator->validate();
 
         DB::transaction(function () use ($request, $validated, $workorder): void {
             $workorder->load(['serviceReport.items.photos']);
@@ -90,9 +104,14 @@ class LaporanController extends Controller
             $oldLookup = $oldPhotoPaths->flip();
 
             foreach ($validated['items'] as $index => $item) {
+                $isCompleted = (bool) ($item['is_completed'] ?? false);
+                if (! $isCompleted) {
+                    continue;
+                }
+
                 $reportItem = $report->items()->create([
                     'work_order_complaint_item_id' => $item['complaint_item_id'],
-                    'service_finished_at' => $item['service_finished_at'],
+                    'service_finished_at' => $item['service_finished_at'] ?? null,
                     'service_description' => $item['service_description'] ?? null,
                 ]);
 
