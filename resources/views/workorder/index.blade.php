@@ -5,15 +5,10 @@
 @section('content')
 @php
     $role = auth()->user()?->role ?? 'pelanggan';
-    $rows = [
-        ['no' => 'WO-2026-0001', 'nama' => 'Budi Santoso', 'plat' => 'B 1234 XYZ', 'tgl' => '2026-04-16', 'status' => 'process'],
-        ['no' => 'WO-2026-0002', 'nama' => 'Rina Wijaya', 'plat' => 'D 8888 KM', 'tgl' => '2026-04-17', 'status' => 'draft'],
-        ['no' => 'WO-2026-0003', 'nama' => 'Andi Pratama', 'plat' => 'F 7771 AQ', 'tgl' => '2026-04-17', 'status' => 'done'],
-    ];
 @endphp
 
 <h1 class="page-title">Work Order</h1>
-<div class="role-box">Role aktif: <strong>{{ ucfirst($role) }}</strong> (akses action berbeda antara Admin & Customer).</div>
+<div class="role-box">Role aktif: <strong>{{ ucfirst($role) }}</strong></div>
 
 <section class="panel">
     <div class="panel-head">
@@ -27,69 +22,105 @@
         <table>
             <thead>
                 <tr>
-                    <th>No Check</th>
-                    <th>Nama Customer</th>
-                    <th>Plat Nomor</th>
-                    <th>Tanggal Check</th>
-                    <th>Status</th>
+                    <th>No WO</th>
+                    <th>Pelanggan</th>
+                    <th>Tanggal</th>
+                    <th>Motor</th>
+                    <th>Plat</th>
+                    <th>Total</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($rows as $item)
+                @forelse ($workOrders as $item)
                     <tr>
-                        <td>{{ $item['no'] }}</td>
-                        <td>{{ $item['nama'] }}</td>
-                        <td>{{ $item['plat'] }}</td>
-                        <td>{{ $item['tgl'] }}</td>
-                        <td><span class="status {{ $item['status'] }}">{{ ucfirst($item['status']) }}</span></td>
+                        <td>{{ $item->no_wo }}</td>
+                        <td>{{ $item->customer?->name ?? '-' }}</td>
+                        <td>{{ $item->tanggal }}</td>
+                        <td>{{ $item->jenis_motor }}</td>
+                        <td>{{ $item->plat_nomor }}</td>
+                        <td>Rp {{ number_format($item->total_keluhan_biaya, 0, ',', '.') }}</td>
                         <td>
-                            <a href="#" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
                             @if ($role === 'admin')
-                                <a href="{{ route('workorder.create', ['mode' => 'edit']) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
-                                <button class="btn btn-danger btn-delete"><i class="bi bi-trash3"></i> Delete</button>
+                                <a href="{{ route('workorder.edit', $item) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
+                                <form action="{{ route('workorder.destroy', $item) }}" method="POST" class="inline-form form-delete" data-confirm-title="Hapus Work Order?" data-confirm-text="Data akan dihapus permanen.">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash3"></i> Delete</button>
+                                </form>
+                            @else
+                                <span class="status process">Tercatat</span>
                             @endif
                         </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="7" style="text-align:center; color:#64748b;">Belum ada data work order.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
 
     <div class="card-list">
-        @foreach ($rows as $item)
+        @forelse ($workOrders as $item)
             <article class="info-card">
-                <h4>{{ $item['no'] }}</h4>
-                <div class="kv"><span class="key">Customer</span><strong>{{ $item['nama'] }}</strong></div>
-                <div class="kv"><span class="key">Plat</span><span>{{ $item['plat'] }}</span></div>
-                <div class="kv"><span class="key">Tanggal</span><span>{{ $item['tgl'] }}</span></div>
-                <div class="kv"><span class="key">Status</span><span class="status {{ $item['status'] }}">{{ ucfirst($item['status']) }}</span></div>
-                <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.6rem;">
-                    <a href="#" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
-                    @if ($role === 'admin')
-                        <a href="{{ route('workorder.create', ['mode' => 'edit']) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
-                        <button class="btn btn-danger btn-delete"><i class="bi bi-trash3"></i> Delete</button>
-                    @endif
-                </div>
+                <h4>{{ $item->no_wo }}</h4>
+                <div class="kv"><span class="key">Pelanggan</span><strong>{{ $item->customer?->name ?? '-' }}</strong></div>
+                <div class="kv"><span class="key">Tanggal</span><span>{{ $item->tanggal }}</span></div>
+                <div class="kv"><span class="key">Motor</span><span>{{ $item->jenis_motor }}</span></div>
+                <div class="kv"><span class="key">Plat</span><span>{{ $item->plat_nomor }}</span></div>
+                <div class="kv"><span class="key">Total</span><strong>Rp {{ number_format($item->total_keluhan_biaya, 0, ',', '.') }}</strong></div>
+                @if ($role === 'admin')
+                    <div class="mobile-actions">
+                        <a href="{{ route('workorder.edit', $item) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
+                        <form action="{{ route('workorder.destroy', $item) }}" method="POST" class="inline-form form-delete" data-confirm-title="Hapus Work Order?" data-confirm-text="Data akan dihapus permanen.">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger"><i class="bi bi-trash3"></i> Delete</button>
+                        </form>
+                    </div>
+                @endif
             </article>
-        @endforeach
+        @empty
+            <article class="info-card" style="text-align:center; color:#64748b;">Belum ada data work order.</article>
+        @endforelse
+    </div>
+
+    <div class="pagination-wrap">
+        {{ $workOrders->links() }}
     </div>
 </section>
 @endsection
 
 @push('scripts')
 <script>
-    document.querySelectorAll('.btn-delete').forEach((button) => {
-        button.addEventListener('click', () => {
+    document.querySelectorAll('.form-delete').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
             Swal.fire({
-                title: 'Hapus Work Order?',
-                text: 'Data yang dihapus tidak bisa dikembalikan.',
+                title: form.dataset.confirmTitle || 'Yakin?',
+                text: form.dataset.confirmText || 'Proses tidak dapat dibatalkan.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Ya, hapus',
+                confirmButtonText: 'Ya, lanjutkan',
                 cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
             });
         });
     });
 </script>
+
+<style>
+    .inline-form { display:inline-flex; }
+    .mobile-actions { display:flex; flex-wrap:wrap; gap:.45rem; margin-top:.65rem; }
+    .pagination-wrap { padding: .9rem 1rem 1rem; }
+    @media (max-width: 767px) {
+        .btn { width: 100%; justify-content: center; }
+        .mobile-actions .inline-form { width: 100%; }
+    }
+</style>
 @endpush

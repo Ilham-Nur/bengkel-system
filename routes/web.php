@@ -15,9 +15,12 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    Route::view('/workorder', 'workorder.index')->name('workorder.index');
+    Route::get('/workorder', [WorkOrderController::class, 'index'])->name('workorder.index');
     Route::get('/workorder/form', [WorkOrderController::class, 'create'])->name('workorder.create');
     Route::post('/workorder', [WorkOrderController::class, 'store'])->name('workorder.store');
+    Route::get('/workorder/{workorder}/edit', [WorkOrderController::class, 'edit'])->name('workorder.edit');
+    Route::put('/workorder/{workorder}', [WorkOrderController::class, 'update'])->name('workorder.update');
+    Route::delete('/workorder/{workorder}', [WorkOrderController::class, 'destroy'])->name('workorder.destroy');
 
     Route::view('/laporan', 'laporan.index')->name('laporan.index');
     Route::view('/kwitansi', 'kwitansi.index')->name('kwitansi.index');

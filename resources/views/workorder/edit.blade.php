@@ -1,9 +1,9 @@
 @extends('layout.app')
 
-@section('title', 'Form Work Order')
+@section('title', 'Edit Work Order')
 
 @section('content')
-<h1 class="page-title">Tambah Work Order</h1>
+<h1 class="page-title">Edit Work Order</h1>
 <section class="form-page form-page-wide">
     @if ($errors->any())
         <div class="flash flash-error">
@@ -16,13 +16,14 @@
         </div>
     @endif
 
-    <form action="{{ route('workorder.store') }}" method="POST" enctype="multipart/form-data" id="workOrderForm" data-confirm-submit="Buat work order baru?">
+    <form action="{{ route('workorder.update', $workOrder) }}" method="POST" enctype="multipart/form-data" id="workOrderFormEdit" data-confirm-submit="Simpan perubahan work order?">
         @csrf
+        @method('PUT')
+
         <div class="form-grid">
             <div>
                 <label for="no_wo">No. WO</label>
-                <input class="input" id="no_wo" value="{{ $generatedNoWo }}" readonly>
-                <small class="input-note">Nomor WO dibuat otomatis saat simpan data.</small>
+                <input class="input" id="no_wo" value="{{ $workOrder->no_wo }}" readonly>
             </div>
             <div>
                 <label for="user_id">Pelanggan</label>
@@ -32,7 +33,7 @@
                         <option
                             value="{{ $customer->id }}"
                             data-meta="{{ $customer->email ?: $customer->username }}"
-                            @selected((int) old('user_id') === $customer->id)
+                            @selected((int) old('user_id', $workOrder->user_id) === $customer->id)
                         >
                             {{ $customer->name }}
                         </option>
@@ -45,28 +46,26 @@
             </div>
             <div>
                 <label for="tanggal">Tanggal</label>
-                <input class="input" id="tanggal" name="tanggal" type="date" value="{{ old('tanggal', now()->toDateString()) }}" required>
+                <input class="input" id="tanggal" name="tanggal" type="date" value="{{ old('tanggal', $workOrder->tanggal) }}" required>
             </div>
             <div>
                 <label for="jenis_motor">Jenis Motor</label>
-                <input class="input" id="jenis_motor" name="jenis_motor" value="{{ old('jenis_motor') }}" placeholder="Contoh: Honda Vario 160" required>
+                <input class="input" id="jenis_motor" name="jenis_motor" value="{{ old('jenis_motor', $workOrder->jenis_motor) }}" required>
             </div>
             <div>
                 <label for="plat_nomor">Plat Nomor</label>
-                <input class="input text-uppercase" id="plat_nomor" name="plat_nomor" value="{{ old('plat_nomor') }}" placeholder="Contoh: B 1234 XYZ" required>
+                <input class="input text-uppercase" id="plat_nomor" name="plat_nomor" value="{{ old('plat_nomor', $workOrder->plat_nomor) }}" required>
             </div>
             <div>
                 <label for="km_motor">KM Motor</label>
-                <input class="input" id="km_motor" name="km_motor" type="number" min="0" value="{{ old('km_motor') }}" placeholder="Contoh: 12000" required>
+                <input class="input" id="km_motor" name="km_motor" type="number" min="0" value="{{ old('km_motor', $workOrder->km_motor) }}" required>
             </div>
         </div>
 
         <hr class="divider">
         <div class="keluhan-header">
             <h3>Item Keluhan</h3>
-            <button type="button" class="btn btn-light" id="addComplaintItem">
-                <i class="bi bi-plus-circle"></i> Tambah Item Keluhan
-            </button>
+            <button type="button" class="btn btn-light" id="addComplaintItem"><i class="bi bi-plus-circle"></i> Tambah Item Keluhan</button>
         </div>
         <div id="complaintItemsWrap"></div>
 
@@ -76,7 +75,7 @@
         </div>
 
         <div class="form-action sticky-action-mobile">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Update</button>
             <a href="{{ route('workorder.index') }}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Kembali</a>
         </div>
     </form>
@@ -90,7 +89,21 @@
     const customerSelect = document.getElementById('user_id');
     const customerMeta = document.getElementById('customer_meta');
     const grandTotal = document.getElementById('grandTotal');
-    const workOrderForm = document.getElementById('workOrderForm');
+    const formEdit = document.getElementById('workOrderFormEdit');
+    const existingData = @json(old('complaint_items', $workOrder->complaintItems->map(function ($item) {
+        return [
+            'keluhan_item' => $item->keluhan_item,
+            'rekomendasi_perbaikan' => $item->rekomendasi_perbaikan,
+            'sparepart' => $item->sparepart,
+            'estimasi_biaya' => $item->estimasi_biaya,
+            'existing_photos' => $item->photos->map(fn ($photo) => [
+                'path' => $photo->photo_path,
+                'description' => $photo->photo_description,
+                'url' => asset('storage/'.$photo->photo_path),
+            ])->values(),
+        ];
+    })->values()));
+
     let complaintIndex = 0;
 
     const formatCurrency = (value) => new Intl.NumberFormat('id-ID', {
@@ -116,7 +129,7 @@
             row.className = 'photo-row';
             row.innerHTML = `
                 <input type="file" class="input" name="complaint_items[${itemNo}][photos][${photoIndex}]" accept="image/*">
-                <input type="text" class="input" name="complaint_items[${itemNo}][photo_descriptions][${photoIndex}]" placeholder="Deskripsi foto (opsional)">
+                <input type="text" class="input" name="complaint_items[${itemNo}][photo_descriptions][${photoIndex}]" placeholder="Deskripsi foto baru (opsional)">
                 <button type="button" class="btn btn-danger btn-mini remove-photo"><i class="bi bi-trash3"></i></button>
             `;
 
@@ -126,7 +139,24 @@
         });
     };
 
-    const addComplaintItem = () => {
+    const renderExistingPhotos = (itemNo, existingPhotos = []) => {
+        if (!existingPhotos.length) return '';
+
+        return `
+            <div class="existing-photo-grid">
+                ${existingPhotos.map((photo, idx) => `
+                    <label class="existing-photo-card">
+                        <img src="${photo.url}" alt="Foto komponen">
+                        <input type="hidden" name="complaint_items[${itemNo}][existing_photo_paths][${idx}]" value="${photo.path}">
+                        <input type="text" class="input" name="complaint_items[${itemNo}][existing_photo_descriptions][${idx}]" value="${photo.description || ''}" placeholder="Deskripsi foto lama">
+                        <span class="photo-help">Foto lama tetap tersimpan jika tidak dihapus item ini.</span>
+                    </label>
+                `).join('')}
+            </div>
+        `;
+    };
+
+    const addComplaintItem = (data = null) => {
         const item = document.createElement('article');
         item.className = 'complaint-card';
         item.dataset.itemNo = complaintIndex;
@@ -136,26 +166,27 @@
                 <button type="button" class="btn btn-danger btn-mini remove-item"><i class="bi bi-x-circle"></i></button>
             </div>
             <label>Keluhan Item</label>
-            <textarea name="complaint_items[${complaintIndex}][keluhan_item]" placeholder="Contoh: Mesin bergetar saat RPM tinggi" required></textarea>
+            <textarea name="complaint_items[${complaintIndex}][keluhan_item]" required>${data?.keluhan_item ?? ''}</textarea>
 
             <div class="form-grid">
                 <div>
                     <label>Rekomendasi Perbaikan</label>
-                    <textarea name="complaint_items[${complaintIndex}][rekomendasi_perbaikan]" placeholder="Tulis saran perbaikan"></textarea>
+                    <textarea name="complaint_items[${complaintIndex}][rekomendasi_perbaikan]">${data?.rekomendasi_perbaikan ?? ''}</textarea>
                 </div>
                 <div>
                     <label>Sparepart</label>
-                    <textarea name="complaint_items[${complaintIndex}][sparepart]" placeholder="Daftar sparepart"></textarea>
+                    <textarea name="complaint_items[${complaintIndex}][sparepart]">${data?.sparepart ?? ''}</textarea>
                 </div>
             </div>
 
             <label>Estimasi Biaya</label>
-            <input type="number" min="0" class="input estimasi-biaya" name="complaint_items[${complaintIndex}][estimasi_biaya]" placeholder="Contoh: 350000" required>
+            <input type="number" min="0" class="input estimasi-biaya" name="complaint_items[${complaintIndex}][estimasi_biaya]" value="${data?.estimasi_biaya ?? ''}" required>
 
             <div class="photo-header">
                 <strong>Foto Komponen Rusak</strong>
-                <button type="button" class="btn btn-light btn-mini btn-add-photo"><i class="bi bi-image"></i> Tambah Foto</button>
+                <button type="button" class="btn btn-light btn-mini btn-add-photo"><i class="bi bi-image"></i> Tambah Foto Baru</button>
             </div>
+            ${renderExistingPhotos(complaintIndex, data?.existing_photos || [])}
             <div class="photo-list"></div>
         `;
 
@@ -173,23 +204,30 @@
         customerMeta.value = customerSelect.options[customerSelect.selectedIndex]?.dataset.meta || '';
     });
 
-    addComplaintBtn.addEventListener('click', addComplaintItem);
-    addComplaintItem();
-    workOrderForm.addEventListener('submit', (event) => {
+    addComplaintBtn.addEventListener('click', () => addComplaintItem());
+
+    if (Array.isArray(existingData) && existingData.length) {
+        existingData.forEach((item) => addComplaintItem(item));
+    } else {
+        addComplaintItem();
+    }
+
+    formEdit.addEventListener('submit', (event) => {
         event.preventDefault();
         Swal.fire({
-            title: workOrderForm.dataset.confirmSubmit || 'Simpan data?',
-            text: 'Pastikan semua data work order sudah sesuai.',
+            title: formEdit.dataset.confirmSubmit || 'Simpan perubahan?',
+            text: 'Pastikan data sudah benar.',
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Ya, simpan',
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                workOrderForm.submit();
+                formEdit.submit();
             }
         });
     });
+
     customerSelect.dispatchEvent(new Event('change'));
     updateGrandTotal();
 </script>
@@ -197,58 +235,27 @@
 <style>
     .form-page-wide { max-width: 960px; }
     .divider { border: 0; border-top: 1px solid #e2e8f0; margin: 1rem 0; }
-    .input-note { margin-top: .35rem; display: inline-block; color: #64748b; font-size: .78rem; }
     .flash { border-radius: 10px; padding: .75rem .9rem; margin-bottom: .9rem; font-size: .9rem; }
     .flash ul { margin: .5rem 0 0 1rem; padding: 0; }
     .flash-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
-    .keluhan-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: .8rem;
-        margin-bottom: .8rem;
-        flex-wrap: wrap;
-    }
-    .keluhan-header h3 { margin: 0; font-size: 1rem; }
-    .complaint-card {
-        border: 1px solid #dbeafe;
-        border-radius: 12px;
-        background: #f8fbff;
-        padding: .9rem;
-        margin-bottom: .8rem;
-    }
-    .card-head { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-bottom: .5rem; }
-    .card-head h4 { margin: 0; font-size: .92rem; }
-    .btn-mini { padding: .4rem .65rem; font-size: .78rem; }
-    .photo-header {
-        margin-top: .8rem;
-        margin-bottom: .5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: .5rem;
-    }
-    .photo-list { display: grid; gap: .5rem; }
-    .photo-row {
-        display: grid;
-        gap: .5rem;
-        grid-template-columns: 1fr 1fr auto;
-        align-items: center;
-    }
-    .summary-box {
-        margin-top: 1rem;
-        border-radius: 10px;
-        padding: .75rem .9rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-    }
+    .keluhan-header { display:flex; align-items:center; justify-content:space-between; gap:.7rem; flex-wrap:wrap; margin-bottom:.8rem; }
+    .keluhan-header h3 { margin:0; font-size:1rem; }
+    .complaint-card { border:1px solid #dbeafe; border-radius:12px; background:#f8fbff; padding:.9rem; margin-bottom:.8rem; }
+    .card-head { display:flex; justify-content:space-between; align-items:center; gap:.5rem; margin-bottom:.5rem; }
+    .btn-mini { padding:.4rem .65rem; font-size:.78rem; }
+    .photo-header { margin:.75rem 0 .45rem; display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+    .photo-list { display:grid; gap:.5rem; }
+    .photo-row { display:grid; gap:.5rem; grid-template-columns:1fr 1fr auto; align-items:center; }
+    .existing-photo-grid { display:grid; gap:.6rem; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); margin-bottom:.55rem; }
+    .existing-photo-card { border:1px solid #cbd5e1; border-radius:10px; padding:.5rem; background:#fff; display:grid; gap:.4rem; }
+    .existing-photo-card img { width:100%; height:110px; object-fit:cover; border-radius:8px; }
+    .photo-help { color:#64748b; font-size:.75rem; }
+    .summary-box { margin-top:1rem; border-radius:10px; padding:.75rem .9rem; display:flex; justify-content:space-between; background:#eff6ff; border:1px solid #bfdbfe; }
+
     @media (max-width: 767px) {
-        .photo-row { grid-template-columns: 1fr; }
         .form-page { padding: .85rem; }
         .page-title { font-size: 1.05rem; }
+        .photo-row { grid-template-columns: 1fr; }
         .sticky-action-mobile {
             position: sticky;
             bottom: 74px;
