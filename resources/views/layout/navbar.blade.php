@@ -14,7 +14,7 @@
 <header class="topbar">
     <div class="container topbar-inner">
         <div class="brand">
-            <img src="{{ asset('images/reno-motor-logo.svg') }}" alt="Logo Reno Motor">
+            <img src="{{ asset('images/reno_motor.jpeg') }}" alt="Logo Reno Motor">
             <span>Reno Motor</span>
         </div>
         <nav class="desktop-menu">
