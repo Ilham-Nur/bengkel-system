@@ -24,6 +24,7 @@
                     <th>Tanggal WO</th>
                     <th>Plat Nomor</th>
                     <th>Jenis Motor</th>
+                    <th>Progress</th>
                     <th>Status Laporan</th>
                     <th>Aksi</th>
                 </tr>
@@ -36,11 +37,27 @@
                         <td>{{ $item->tanggal }}</td>
                         <td>{{ $item->plat_nomor }}</td>
                         <td>{{ $item->jenis_motor }}</td>
+                        @php
+                            $totalKeluhan = $item->complaintItems->count();
+                            $selesaiKeluhan = $item->serviceReport?->items?->count() ?? 0;
+                            $rawPercent = $totalKeluhan > 0 ? ($selesaiKeluhan / $totalKeluhan) * 100 : 0;
+                            $progressPercent = $selesaiKeluhan > 0 ? min(100, (int) (ceil($rawPercent / 25) * 25)) : 0;
+                        @endphp
                         <td>
-                            @if ($item->serviceReport)
-                                <span class="status done">Sudah diisi</span>
+                            <div class="progress-wrap" title="{{ $selesaiKeluhan }} dari {{ $totalKeluhan }} keluhan selesai">
+                                <div class="progress-track">
+                                    <div class="progress-fill" style="width: {{ $progressPercent }}%;"></div>
+                                </div>
+                                <small>{{ $progressPercent }}% ({{ $selesaiKeluhan }}/{{ $totalKeluhan }})</small>
+                            </div>
+                        </td>
+                        <td>
+                            @if ($progressPercent === 100)
+                                <span class="status done">Selesai</span>
+                            @elseif ($selesaiKeluhan > 0)
+                                <span class="status process">Proses</span>
                             @else
-                                <span class="status draft">Belum diisi</span>
+                                <span class="status draft">Belum dikerjakan</span>
                             @endif
                         </td>
                         <td>
@@ -53,7 +70,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" style="text-align:center; color:#64748b;">Belum ada data work order.</td>
+                        <td colspan="8" style="text-align:center; color:#64748b;">Belum ada data work order.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -68,11 +85,25 @@
                 <div class="kv"><span class="key">Tanggal WO</span><span>{{ $item->tanggal }}</span></div>
                 <div class="kv"><span class="key">Plat</span><span>{{ $item->plat_nomor }}</span></div>
                 <div class="kv"><span class="key">Motor</span><span>{{ $item->jenis_motor }}</span></div>
+                @php
+                    $totalKeluhan = $item->complaintItems->count();
+                    $selesaiKeluhan = $item->serviceReport?->items?->count() ?? 0;
+                    $rawPercent = $totalKeluhan > 0 ? ($selesaiKeluhan / $totalKeluhan) * 100 : 0;
+                    $progressPercent = $selesaiKeluhan > 0 ? min(100, (int) (ceil($rawPercent / 25) * 25)) : 0;
+                @endphp
+                <div class="progress-wrap" style="margin-top:.5rem;" title="{{ $selesaiKeluhan }} dari {{ $totalKeluhan }} keluhan selesai">
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ $progressPercent }}%;"></div>
+                    </div>
+                    <small>{{ $progressPercent }}% ({{ $selesaiKeluhan }}/{{ $totalKeluhan }})</small>
+                </div>
                 <div style="margin-top:.6rem;">
-                    @if ($item->serviceReport)
-                        <span class="status done">Sudah diisi</span>
+                    @if ($progressPercent === 100)
+                        <span class="status done">Selesai</span>
+                    @elseif ($selesaiKeluhan > 0)
+                        <span class="status process">Proses</span>
                     @else
-                        <span class="status draft">Belum diisi</span>
+                        <span class="status draft">Belum dikerjakan</span>
                     @endif
                 </div>
 
@@ -96,5 +127,9 @@
 @push('scripts')
 <style>
     .pagination-wrap { padding: .9rem 1rem 1rem; }
+    .progress-wrap { min-width: 150px; }
+    .progress-track { width: 100%; height: 9px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #10b981); border-radius: 999px; transition: width .25s ease; }
+    .progress-wrap small { display:block; margin-top:.3rem; color:#64748b; font-size:.75rem; }
 </style>
 @endpush

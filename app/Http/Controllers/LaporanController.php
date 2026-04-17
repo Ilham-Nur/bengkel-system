@@ -23,7 +23,7 @@ class LaporanController extends Controller
         $user = $request->user();
 
         $query = WorkOrder::query()
-            ->with(['customer:id,name', 'serviceReport'])
+            ->with(['customer:id,name', 'complaintItems:id,work_order_id', 'serviceReport.items:id,service_report_id,work_order_complaint_item_id'])
             ->latest('tanggal')
             ->latest();
 
