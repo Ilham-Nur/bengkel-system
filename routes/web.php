@@ -1,25 +1,24 @@
 <?php
 
+use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('login.index'));
 
-Route::view('/login', 'login.index')->name('login.index');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'index'])->name('login.index');
+    Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
+});
 
-Route::view('/workorder', 'workorder.index')->name('workorder.index');
-Route::view('/workorder/form', 'workorder.create')->name('workorder.create');
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::view('/laporan', 'laporan.index')->name('laporan.index');
-Route::view('/kwitansi', 'kwitansi.index')->name('kwitansi.index');
+    Route::view('/workorder', 'workorder.index')->name('workorder.index');
+    Route::view('/workorder/form', 'workorder.create')->name('workorder.create');
 
-Route::get('/user', function () {
-    if (request('role') !== 'admin') {
-        return redirect()->route('workorder.index', ['role' => request('role', 'pelanggan')]);
-    }
+    Route::view('/laporan', 'laporan.index')->name('laporan.index');
+    Route::view('/kwitansi', 'kwitansi.index')->name('kwitansi.index');
 
-    return view('user.index');
-})->name('user.index');
-
-Route::get('/pelanggan', function () {
-    return redirect()->route('user.index', ['role' => request('role', 'admin')]);
-})->name('pelanggan.index');
+    Route::get('/user', [LoginController::class, 'indexUser'])->name('user.index');
+    Route::redirect('/pelanggan', '/workorder')->name('pelanggan.index');
+});
