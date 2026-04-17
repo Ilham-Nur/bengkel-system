@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Bengkel Motor')</title>
+    <title>@yield('title', 'Reno Motor')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -47,8 +47,15 @@
             align-items: center;
             gap: .75rem;
         }
-        .brand { font-weight: 700; display: flex; align-items: center; gap: .5rem; }
-        .brand i { color: var(--primary); }
+        .brand { font-weight: 700; display: flex; align-items: center; gap: .55rem; }
+        .brand img {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+        }
         .desktop-menu { display: none; gap: .5rem; flex-wrap: wrap; }
         .desktop-menu a {
             text-decoration: none;
@@ -172,6 +179,45 @@
             font-size: .86rem;
             color: var(--muted);
         }
+        .login-shell {
+            margin-top: 2.2rem;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+        .login-showcase {
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: var(--border);
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #e2e8f0;
+            box-shadow: var(--shadow);
+            padding: 1.1rem;
+        }
+        .login-showcase img {
+            width: 100%;
+            max-width: 240px;
+            display: block;
+            margin: 0 auto .8rem;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .login-showcase h2 {
+            margin: .4rem 0;
+            color: #fff;
+            font-size: 1.35rem;
+        }
+        .login-showcase p {
+            margin: .35rem 0;
+            color: #cbd5e1;
+            font-size: .9rem;
+            line-height: 1.5;
+        }
+        .login-contact {
+            margin-top: .85rem;
+            padding-top: .75rem;
+            border-top: 1px dashed rgba(148, 163, 184, .6);
+        }
 
         @media (min-width: 768px) {
             body { padding-bottom: 1rem; }
@@ -179,6 +225,10 @@
             .mobile-nav { display: none; }
             .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .full { grid-column: 1 / -1; }
+            .login-shell {
+                grid-template-columns: 1.05fr .95fr;
+                align-items: stretch;
+            }
         }
 
         @media (max-width: 767px) {

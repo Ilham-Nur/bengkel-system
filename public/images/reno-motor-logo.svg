@@ -1,0 +1,20 @@
+<svg width="420" height="420" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="420" height="420" rx="24" fill="#F8FAFC"/>
+  <g transform="translate(30, 36)">
+    <path d="M26 138L0 168L44 160L26 138Z" fill="#111827"/>
+    <path d="M334 138L360 168L316 160L334 138Z" fill="#111827"/>
+    <path d="M18 188H342L320 238H40L18 188Z" fill="#EA580C"/>
+    <circle cx="180" cy="154" r="84" stroke="#111827" stroke-width="8"/>
+    <circle cx="180" cy="154" r="60" stroke="#111827" stroke-width="6"/>
+    <path d="M146 134C146 115 162 100 181 100C199 100 214 115 214 134V159H146V134Z" stroke="#111827" stroke-width="8" fill="#E5E7EB"/>
+    <path d="M134 160H228V216C228 238 210 256 188 256H174C152 256 134 238 134 216V160Z" fill="#EA580C" stroke="#111827" stroke-width="8"/>
+    <path d="M150 178C156 190 167 198 180 198C193 198 204 190 210 178" stroke="#111827" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="139" cy="290" r="22" stroke="#111827" stroke-width="8"/>
+    <circle cx="220" cy="290" r="22" stroke="#111827" stroke-width="8"/>
+    <path d="M158 277L202 277" stroke="#111827" stroke-width="8" stroke-linecap="round"/>
+    <text x="180" y="58" text-anchor="middle" font-size="62" font-weight="800" letter-spacing="6" fill="#111827" font-family="Arial, sans-serif">RENO</text>
+    <text x="86" y="208" text-anchor="middle" font-size="30" font-weight="700" fill="white" font-family="Arial, sans-serif">ESTD.</text>
+    <text x="274" y="208" text-anchor="middle" font-size="30" font-weight="700" fill="white" font-family="Arial, sans-serif">2012</text>
+    <text x="180" y="338" text-anchor="middle" font-size="38" font-weight="700" letter-spacing="3" fill="#111827" font-family="Arial, sans-serif">MOTOR CUSTOM</text>
+  </g>
+</svg>

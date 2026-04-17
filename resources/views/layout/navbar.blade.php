@@ -13,7 +13,10 @@
 
 <header class="topbar">
     <div class="container topbar-inner">
-        <div class="brand"><i class="bi bi-tools"></i> Bengkel Motor</div>
+        <div class="brand">
+            <img src="{{ asset('images/reno-motor-logo.svg') }}" alt="Logo Reno Motor">
+            <span>Reno Motor</span>
+        </div>
         <nav class="desktop-menu">
             @foreach ($menu as $item)
                 <a href="{{ route($item['route']) }}" class="{{ request()->routeIs($item['route']) ? 'active' : '' }}">
