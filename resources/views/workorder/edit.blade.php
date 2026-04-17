@@ -138,7 +138,7 @@
             const row = document.createElement('div');
             row.className = 'photo-row';
             row.innerHTML = `
-                <input type="file" class="input" name="complaint_items[${itemNo}][photos][${photoIndex}]" accept="image/*">
+                <input type="file" class="input" name="complaint_items[${itemNo}][photos][${photoIndex}]" accept="image/*" capture="environment">
                 <input type="text" class="input" name="complaint_items[${itemNo}][photo_descriptions][${photoIndex}]" placeholder="Deskripsi foto baru (opsional)">
                 <button type="button" class="btn btn-danger btn-mini remove-photo"><i class="bi bi-trash3"></i></button>
             `;
@@ -196,6 +196,7 @@
                 <strong>Foto Komponen Rusak</strong>
                 <button type="button" class="btn btn-light btn-mini btn-add-photo"><i class="bi bi-image"></i> Tambah Foto Baru</button>
             </div>
+            <small class="photo-help">Di HP, tombol ini bisa langsung membuka kamera atau galeri.</small>
             ${renderExistingPhotos(complaintIndex, data?.existing_photos || [])}
             <div class="photo-list"></div>
         `;
