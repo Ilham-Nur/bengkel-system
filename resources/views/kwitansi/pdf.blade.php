@@ -303,9 +303,9 @@
                     @endif
                 </div>
                 <div>
-                    <div class="brand-title">Kanaya Motor</div>
+                    <div class="brand-title">Reno Motor</div>
                     <div class="brand-sub">MELAYANI SERVICE MOTOR DAN PENJUALAN SPARE PART</div>
-                    <div class="brand-addr">Alamat: Isi dari profil bengkel · Telp/WA: Isi kontak bengkel</div>
+                    <div class="brand-addr">Alamat: Jl. Cikpuan No.6, Sungai Panas, Kec. Batam Kota, Kota Batam, Kepulauan Riau 29444 · Telp/WA: 0812-7088-8722</div>
                 </div>
             </div>
             <div class="invoice-box">
@@ -403,7 +403,7 @@
             </div>
         </div>
 
-        <div class="promo">10X SERVICE GRATIS 1X GANTI OLI</div>
+        {{-- <div class="promo">10X SERVICE GRATIS 1X GANTI OLI</div> --}}
     </section>
 </body>
 
