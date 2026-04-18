@@ -32,7 +32,8 @@ class UserController extends Controller
                 $builder->where(function ($nested) use ($query): void {
                     $nested->where('name', 'like', "%{$query}%")
                         ->orWhere('username', 'like', "%{$query}%")
-                        ->orWhere('email', 'like', "%{$query}%");
+                        ->orWhere('email', 'like', "%{$query}%")
+                        ->orWhere('no_hp', 'like', "%{$query}%");
                 });
             })
             ->when(filled($startDate), fn ($builder) => $builder->whereDate('created_at', '>=', $startDate))
@@ -66,6 +67,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'no_hp' => ['nullable', 'string', 'max:30'],
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'in:'.User::ROLE_ADMIN.','.User::ROLE_PELANGGAN],
         ]);
@@ -83,6 +85,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username,'.$user->id],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'no_hp' => ['nullable', 'string', 'max:30'],
             'password' => ['nullable', 'string', 'min:6'],
             'role' => ['required', 'in:'.User::ROLE_ADMIN.','.User::ROLE_PELANGGAN],
         ]);

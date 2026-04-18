@@ -72,7 +72,7 @@ class KwitansiController extends Controller
         $workOrderId = $request->integer('work_order_id');
 
         $workOrderQuery = WorkOrder::query()
-            ->with(['customer:id,name,username', 'complaintItems:id,work_order_id,keluhan_item,estimasi_biaya'])
+            ->with(['customer:id,name,username,no_hp', 'complaintItems:id,work_order_id,keluhan_item,estimasi_biaya'])
             ->whereDoesntHave('kwitansi')
             ->latest('tanggal')
             ->latest();
@@ -86,7 +86,7 @@ class KwitansiController extends Controller
             ->get(['id', 'no_wo', 'tanggal', 'user_id', 'jenis_motor', 'plat_nomor']);
 
         if ($workOrder && ! $workOrder->relationLoaded('complaintItems')) {
-            $workOrder->load(['customer:id,name,username', 'complaintItems:id,work_order_id,keluhan_item,estimasi_biaya']);
+            $workOrder->load(['customer:id,name,username,no_hp', 'complaintItems:id,work_order_id,keluhan_item,estimasi_biaya']);
         }
 
         return view('kwitansi.create', [
@@ -111,7 +111,7 @@ class KwitansiController extends Controller
         ]);
 
         $workOrder = WorkOrder::query()
-            ->with(['customer:id,name,username'])
+            ->with(['customer:id,name,username,no_hp'])
             ->whereKey($validated['work_order_id'])
             ->firstOrFail();
 
@@ -123,7 +123,7 @@ class KwitansiController extends Controller
                 'work_order_id' => $workOrder->id,
                 'tanggal' => $validated['tanggal'],
                 'customer_name' => $workOrder->customer?->name ?? '-',
-                'customer_phone' => $workOrder->customer?->username,
+                'customer_phone' => $workOrder->customer?->no_hp,
                 'jenis_motor' => $workOrder->jenis_motor,
                 'plat_nomor' => $workOrder->plat_nomor,
                 'total_kwitansi' => collect($validated['items'])->sum(fn (array $item): float => (float) $item['qty'] * (float) $item['unit_price']),

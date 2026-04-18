@@ -31,6 +31,10 @@
                         <input class="input" id="email" name="email" type="email" value="{{ old('email', $editUser?->email) }}" required>
                     </div>
                     <div>
+                        <label for="no_hp">No HP</label>
+                        <input class="input" id="no_hp" name="no_hp" value="{{ old('no_hp', $editUser?->no_hp) }}" placeholder="Contoh: 08123456789">
+                    </div>
+                    <div>
                         <label for="role">Role</label>
                         <select class="input" id="role" name="role" required>
                             <option value="admin" @selected(old('role', $editUser?->role) === 'admin')>Admin</option>
@@ -65,7 +69,7 @@
             <form method="GET" action="{{ route('user.index') }}" class="filter-grid">
                 <div>
                     <label for="q">Pencarian</label>
-                    <input class="input" id="q" name="q" value="{{ $filters['q'] }}" placeholder="Nama, username, email">
+                    <input class="input" id="q" name="q" value="{{ $filters['q'] }}" placeholder="Nama, username, email, no hp">
                 </div>
                 <div>
                     <label for="start_date">Dari Tanggal</label>
@@ -97,6 +101,7 @@
                         <th>Nama User</th>
                         <th>Username</th>
                         <th>Email</th>
+                        <th>No HP</th>
                         <th>Role</th>
                         <th>Aksi</th>
                     </tr>
@@ -107,6 +112,7 @@
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->username }}</td>
                             <td>{{ $item->email }}</td>
+                            <td>{{ $item->no_hp ?: '-' }}</td>
                             <td><span class="status {{ $item->role === 'admin' ? 'process' : 'draft' }}">{{ ucfirst($item->role) }}</span></td>
                             <td>
                                 <a href="{{ route('user.index', ['edit' => $item->id]) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
@@ -119,7 +125,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" style="text-align:center; color:var(--muted);">Belum ada data user.</td>
+                            <td colspan="6" style="text-align:center; color:var(--muted);">Belum ada data user.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -132,6 +138,7 @@
                     <h4>{{ $item->name }}</h4>
                     <div class="kv"><span class="key">Username</span><strong>{{ $item->username }}</strong></div>
                     <div class="kv"><span class="key">Email</span><strong>{{ $item->email }}</strong></div>
+                    <div class="kv"><span class="key">No HP</span><strong>{{ $item->no_hp ?: '-' }}</strong></div>
                     <div class="kv"><span class="key">Role</span><span class="status {{ $item->role === 'admin' ? 'process' : 'draft' }}">{{ ucfirst($item->role) }}</span></div>
                     <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.6rem;">
                         <a href="{{ route('user.index', ['edit' => $item->id]) }}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>

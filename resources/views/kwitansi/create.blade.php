@@ -45,7 +45,7 @@
             </div>
             <div>
                 <label>No HP Customer</label>
-                <input class="input" value="{{ $workOrder?->customer?->username ?? '-' }}" readonly>
+                <input class="input" value="{{ $workOrder?->customer?->no_hp ?? '-' }}" readonly>
             </div>
             <div>
                 <label>Jenis Motor</label>
