@@ -18,32 +18,53 @@
     </div>
 
     <div class="filter-wrap">
-        <form method="GET" action="{{ route('kwitansi.index') }}" class="filter-grid">
+        <form method="GET" action="{{ route('kwitansi.index') }}" class="search-inline">
             <div>
                 <label for="q">Pencarian</label>
                 <input class="input" id="q" name="q" value="{{ $filters['q'] }}" placeholder="No invoice, nama, plat, no wo">
             </div>
-            <div>
-                <label for="start_date">Dari Tanggal</label>
-                <input class="input" id="start_date" name="start_date" type="date" value="{{ $filters['start_date'] }}">
-            </div>
-            <div>
-                <label for="end_date">Sampai Tanggal</label>
-                <input class="input" id="end_date" name="end_date" type="date" value="{{ $filters['end_date'] }}">
-            </div>
-            <div>
-                <label for="per_page">Data / Halaman</label>
-                <select class="input" id="per_page" name="per_page">
-                    @foreach ([5, 10, 25] as $limit)
-                        <option value="{{ $limit }}" @selected((int) $filters['per_page'] === $limit)>{{ $limit }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="filter-actions full">
-                <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Terapkan</button>
+            <input type="hidden" name="start_date" value="{{ $filters['start_date'] }}">
+            <input type="hidden" name="end_date" value="{{ $filters['end_date'] }}">
+            <input type="hidden" name="per_page" value="{{ $filters['per_page'] }}">
+            <div class="filter-actions-inline">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
+                <button class="btn btn-light" type="button" data-open-filter><i class="bi bi-funnel"></i> Filter</button>
                 <a href="{{ route('kwitansi.index') }}" class="btn btn-light"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
             </div>
         </form>
+    </div>
+
+    <div class="filter-modal" data-filter-modal hidden>
+        <div class="filter-modal-backdrop" data-close-filter></div>
+        <div class="filter-modal-card">
+            <div class="filter-modal-head">
+                <strong>Filter Invoice</strong>
+                <button type="button" class="btn btn-light" data-close-filter><i class="bi bi-x-lg"></i></button>
+            </div>
+            <form method="GET" action="{{ route('kwitansi.index') }}" class="filter-grid">
+                <input type="hidden" name="q" value="{{ $filters['q'] }}">
+                <div>
+                    <label for="start_date_modal">Dari Tanggal</label>
+                    <input class="input" id="start_date_modal" name="start_date" type="date" value="{{ $filters['start_date'] }}">
+                </div>
+                <div>
+                    <label for="end_date_modal">Sampai Tanggal</label>
+                    <input class="input" id="end_date_modal" name="end_date" type="date" value="{{ $filters['end_date'] }}">
+                </div>
+                <div>
+                    <label for="per_page_modal">Data / Halaman</label>
+                    <select class="input" id="per_page_modal" name="per_page">
+                        @foreach ([5, 10, 25] as $limit)
+                            <option value="{{ $limit }}" @selected((int) $filters['per_page'] === $limit)>{{ $limit }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Terapkan</button>
+                    <a href="{{ route('kwitansi.index', ['q' => $filters['q']]) }}" class="btn btn-light">Reset Filter</a>
+                </div>
+            </form>
+        </div>
     </div>
 
     <div class="table-wrap desktop-only">
@@ -135,13 +156,32 @@
 @endsection
 
 @push('scripts')
+<script>
+    const modal = document.querySelector('[data-filter-modal]');
+    document.querySelectorAll('[data-open-filter]').forEach((button) => {
+        button.addEventListener('click', () => {
+            modal?.removeAttribute('hidden');
+        });
+    });
+    document.querySelectorAll('[data-close-filter]').forEach((button) => {
+        button.addEventListener('click', () => {
+            modal?.setAttribute('hidden', 'hidden');
+        });
+    });
+</script>
 <style>
     .filter-wrap { padding: 1rem; border-bottom: var(--border); }
-    .filter-grid { display:grid; gap:.8rem; grid-template-columns: repeat(1, minmax(0, 1fr)); }
-    .filter-actions { display:flex; gap:.5rem; flex-wrap:wrap; align-items:end; }
+    .search-inline { display:grid; gap:.8rem; grid-template-columns: 1fr; }
+    .filter-actions-inline { display:flex; gap:.5rem; flex-wrap:wrap; align-items:end; }
+    .filter-modal { position: fixed; inset: 0; z-index: 40; display:flex; align-items:center; justify-content:center; padding: 1rem; }
+    .filter-modal-backdrop { position:absolute; inset:0; background:rgba(15, 23, 42, .42); }
+    .filter-modal-card { position:relative; width:min(560px, 100%); background:#fff; border-radius:14px; box-shadow: var(--shadow); padding:1rem; }
+    .filter-modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.8rem; }
+    .filter-grid { display:grid; gap:.8rem; }
+    .filter-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
     .pagination-wrap { padding: .9rem 1rem 1rem; }
     @media (min-width: 768px) {
-        .filter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .search-inline { grid-template-columns: minmax(0, 1fr) auto; align-items:end; }
     }
 </style>
 @endpush
