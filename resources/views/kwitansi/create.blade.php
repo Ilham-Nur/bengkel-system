@@ -6,7 +6,7 @@
 <h1 class="page-title">Create Kwitansi</h1>
 
 <section class="panel" style="padding:1rem;">
-    @if (! $workOrder)
+    @if ($availableWorkOrders->isEmpty())
         <div class="alert alert-warning" style="margin-bottom:1rem;">
             Tidak ada work order yang siap dibuat kwitansi. Pastikan ada work order yang belum memiliki kwitansi.
         </div>
@@ -26,8 +26,9 @@
             </div>
             <div>
                 <label for="work_order_id">Relasi Work Order</label>
-                <select class="input" id="work_order_id" name="work_order_id" @disabled(! $workOrder) required>
-                    @forelse ($availableWorkOrders as $wo)
+                <select class="input" id="work_order_id" name="work_order_id" @disabled($availableWorkOrders->isEmpty()) required>
+                    <option value="">-- Pilih Work Order --</option>
+                    @foreach ($availableWorkOrders as $wo)
                         <option
                             value="{{ $wo->id }}"
                             data-url="{{ route('kwitansi.create', ['work_order_id' => $wo->id]) }}"
@@ -35,9 +36,7 @@
                         >
                             {{ $wo->no_wo }} - {{ $wo->customer?->name ?? '-' }} ({{ $wo->plat_nomor }})
                         </option>
-                    @empty
-                        <option value="">Tidak ada work order tersedia</option>
-                    @endforelse
+                    @endforeach
                 </select>
             </div>
             <div>
@@ -65,38 +64,60 @@
         <hr style="margin:1rem 0; border:none; border-top:1px solid #e2e8f0;">
         <h3 style="margin-top:0;">Detail Item Kwitansi</h3>
 
-        <div id="kwitansiItems">
-            @php
-                $oldItems = old('items', $workOrder?->complaintItems?->map(fn ($item) => [
-                    'item_name' => $item->keluhan_item,
-                    'qty' => 1,
-                    'unit_price' => (int) $item->estimasi_biaya,
-                ])->toArray() ?? []);
-            @endphp
+        @php
+            $oldItems = old('items', $workOrder?->complaintItems?->map(fn ($item) => [
+                'item_name' => $item->keluhan_item,
+                'qty' => 1,
+                'unit_price' => (int) $item->estimasi_biaya,
+            ])->toArray() ?? []);
+        @endphp
 
-            @foreach ($oldItems as $index => $item)
-                <article class="complaint-card">
-                    <div class="form-grid">
-                        <div style="grid-column: span 2;">
-                            <label>Item</label>
-                            <textarea class="input" name="items[{{ $index }}][item_name]" required>{{ $item['item_name'] }}</textarea>
-                        </div>
-                        <div>
-                            <label>Jumlah</label>
-                            <input class="input item-qty" type="number" min="1" name="items[{{ $index }}][qty]" value="{{ $item['qty'] }}" required>
-                        </div>
-                        <div>
-                            <label>Harga Satuan</label>
-                            <input class="input item-price" type="number" min="0" step="0.01" name="items[{{ $index }}][unit_price]" value="{{ $item['unit_price'] }}" required>
-                        </div>
-                    </div>
-                </article>
-            @endforeach
+        <div class="table-wrap" style="margin-top:.75rem;">
+            <table id="kwitansiItemsTable">
+                <thead>
+                    <tr>
+                        <th style="width:50px;">No</th>
+                        <th>Item</th>
+                        <th style="width:120px;">Jumlah</th>
+                        <th style="width:180px;">Harga Satuan</th>
+                        <th style="width:180px;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="kwitansiItemsBody">
+                    @forelse ($oldItems as $index => $item)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>
+                                <textarea class="input" name="items[{{ $index }}][item_name]" required>{{ $item['item_name'] }}</textarea>
+                            </td>
+                            <td>
+                                <input class="input item-qty" type="number" min="1" name="items[{{ $index }}][qty]" value="{{ $item['qty'] }}" required>
+                            </td>
+                            <td>
+                                <input class="input item-price" type="number" min="0" step="0.01" name="items[{{ $index }}][unit_price]" value="{{ $item['unit_price'] }}" required>
+                            </td>
+                            <td>
+                                <strong class="item-subtotal">Rp 0</strong>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr id="emptyItemsRow">
+                            <td colspan="5" style="text-align:center; color:#64748b;">Pilih work order untuk memuat detail item kwitansi.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4" style="text-align:right;">Total Kwitansi</th>
+                        <th><span id="table_total_display">Rp 0</span></th>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
 
         <div style="display:flex; gap:.5rem; margin-top:1rem; flex-wrap:wrap;">
             <a href="{{ route('kwitansi.index') }}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Kembali</a>
-            <button class="btn btn-success" type="submit" @disabled(! $workOrder)><i class="bi bi-check2-circle"></i> Simpan Kwitansi</button>
+            <button class="btn btn-success" type="submit" @disabled($availableWorkOrders->isEmpty())><i class="bi bi-check2-circle"></i> Simpan Kwitansi</button>
         </div>
     </form>
 </section>
@@ -105,7 +126,7 @@
 @push('scripts')
 <style>
     .form-grid { display:grid; gap:.8rem; grid-template-columns: repeat(1, minmax(0, 1fr)); }
-    .complaint-card { border:1px solid #e2e8f0; border-radius:12px; padding:.9rem; margin-bottom:.75rem; background:#fff; }
+    #kwitansiItemsTable textarea { min-height: 64px; }
     @media (min-width: 768px) {
         .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -113,26 +134,48 @@
 <script>
     const workOrderSelect = document.getElementById('work_order_id');
     const totalDisplay = document.getElementById('total_kwitansi_display');
+    const tableTotalDisplay = document.getElementById('table_total_display');
 
     workOrderSelect?.addEventListener('change', (event) => {
         const selectedOption = event.target.selectedOptions[0];
         const url = selectedOption?.dataset?.url;
+
         if (url) {
             window.location.href = url;
+            return;
         }
+
+        window.location.href = '{{ route('kwitansi.create') }}';
     });
 
+    function rupiah(value) {
+        return `Rp ${new Intl.NumberFormat('id-ID').format(value)}`;
+    }
+
     function updateTotal() {
-        const rows = document.querySelectorAll('#kwitansiItems .complaint-card');
+        const rows = document.querySelectorAll('#kwitansiItemsBody tr');
         let total = 0;
 
         rows.forEach((row) => {
-            const qty = Number(row.querySelector('.item-qty')?.value || 0);
-            const price = Number(row.querySelector('.item-price')?.value || 0);
-            total += qty * price;
+            const qtyInput = row.querySelector('.item-qty');
+            const priceInput = row.querySelector('.item-price');
+            const subtotalEl = row.querySelector('.item-subtotal');
+
+            if (!qtyInput || !priceInput || !subtotalEl) {
+                return;
+            }
+
+            const qty = Number(qtyInput.value || 0);
+            const price = Number(priceInput.value || 0);
+            const subtotal = qty * price;
+
+            subtotalEl.textContent = rupiah(subtotal);
+            total += subtotal;
         });
 
-        totalDisplay.value = `Rp ${new Intl.NumberFormat('id-ID').format(total)}`;
+        const totalText = rupiah(total);
+        totalDisplay.value = totalText;
+        tableTotalDisplay.textContent = totalText;
     }
 
     document.addEventListener('input', (event) => {

@@ -79,7 +79,7 @@ class KwitansiController extends Controller
 
         $workOrder = $workOrderId
             ? (clone $workOrderQuery)->whereKey($workOrderId)->first()
-            : (clone $workOrderQuery)->first();
+            : null;
 
         $availableWorkOrders = (clone $workOrderQuery)
             ->limit(50)
