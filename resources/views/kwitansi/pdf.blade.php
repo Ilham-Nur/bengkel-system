@@ -329,7 +329,7 @@
                 <div class="row">
                     <div>Dikerjakan Oleh</div>
                     <div>:</div>
-                    <div class="dots">-</div>
+                    <div class="dots"></div>
                 </div>
             </div>
             <div class="info-col">
