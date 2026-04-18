@@ -17,9 +17,17 @@
         .complaint-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
         .kv { margin-bottom: 6px; font-size: 14px; }
         .kv .key { display: inline-block; min-width: 140px; color: #64748b; }
-        .photo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin-top: 6px; }
-        .photo-card { border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; margin: 0; }
-        .photo-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 6px; }
+        .photo-card { border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; margin: 0; background: #fff; }
+        .photo-card img {
+            width: 100%;
+            height: auto;
+            max-height: 220px;
+            object-fit: contain;
+            border-radius: 6px;
+            display: block;
+            background: #f8fafc;
+        }
         .status { display: inline-block; border-radius: 999px; padding: 3px 8px; font-size: 12px; background: #f1f5f9; }
         .status.done { background: #dcfce7; color: #14532d; }
 
@@ -27,6 +35,7 @@
             body { margin: 0; }
             .toolbar { display: none; }
             .card, .complaint-card { break-inside: avoid; }
+            .photo-card img { max-height: 320px; }
         }
     </style>
 </head>
