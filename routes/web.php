@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/{workorder}/form', [LaporanController::class, 'form'])->name('laporan.form');
     Route::get('/laporan/{workorder}/detail', [LaporanController::class, 'show'])->name('laporan.show');
+    Route::get('/laporan/{workorder}/pdf', [LaporanController::class, 'exportPdf'])->name('laporan.pdf');
     Route::post('/laporan/{workorder}', [LaporanController::class, 'save'])->name('laporan.save');
     Route::get('/kwitansi', [KwitansiController::class, 'index'])->name('kwitansi.index');
     Route::get('/kwitansi/create', [KwitansiController::class, 'create'])->name('kwitansi.create');

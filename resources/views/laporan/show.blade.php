@@ -85,6 +85,7 @@
     @endforeach
 
     <div class="form-action">
+        <a href="{{ route('laporan.pdf', $workOrder) }}" target="_blank" class="btn btn-primary"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
         <a href="{{ route('laporan.index') }}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Kembali</a>
     </div>
 </section>

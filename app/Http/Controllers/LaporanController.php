@@ -105,6 +105,22 @@ class LaporanController extends Controller
         ]);
     }
 
+    public function exportPdf(WorkOrder $workorder): View
+    {
+        $this->ensureCanView($workorder);
+
+        $workorder->load([
+            'customer:id,name,email,username',
+            'complaintItems.photos',
+            'serviceReport.items.photos',
+        ]);
+
+        return view('laporan.pdf', [
+            'workOrder' => $workorder,
+            'report' => $workorder->serviceReport,
+        ]);
+    }
+
     public function save(Request $request, WorkOrder $workorder): RedirectResponse
     {
         $this->ensureAdmin();
