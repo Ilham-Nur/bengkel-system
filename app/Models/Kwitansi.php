@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'jenis_motor',
     'plat_nomor',
     'total_kwitansi',
+    'is_paid',
+    'paid_at',
 ])]
 class Kwitansi extends Model
 {
@@ -28,4 +30,13 @@ class Kwitansi extends Model
     {
         return $this->hasMany(KwitansiItem::class);
     }
+
+    protected function casts(): array
+    {
+        return [
+            'is_paid' => 'boolean',
+            'paid_at' => 'datetime',
+        ];
+    }
 }
+

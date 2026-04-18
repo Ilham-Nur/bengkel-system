@@ -32,6 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/kwitansi', [KwitansiController::class, 'index'])->name('kwitansi.index');
     Route::get('/kwitansi/create', [KwitansiController::class, 'create'])->name('kwitansi.create');
     Route::post('/kwitansi', [KwitansiController::class, 'store'])->name('kwitansi.store');
+    Route::get('/kwitansi/{kwitansi}/pdf', [KwitansiController::class, 'exportPdf'])->name('kwitansi.pdf');
+    Route::patch('/kwitansi/{kwitansi}/toggle-paid', [KwitansiController::class, 'togglePaid'])->name('kwitansi.toggle-paid');
 
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
     Route::post('/user', [UserController::class, 'store'])->name('user.store');

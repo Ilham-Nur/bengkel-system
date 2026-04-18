@@ -16,6 +16,12 @@ class KwitansiController extends Controller
         abort_unless(auth()->user()?->isAdmin(), 403);
     }
 
+    private function ensureCanView(Kwitansi $kwitansi): void
+    {
+        $user = auth()->user();
+        abort_unless($user?->isAdmin() || $kwitansi->workOrder?->user_id === $user?->id, 403);
+    }
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -127,6 +133,8 @@ class KwitansiController extends Controller
                 'jenis_motor' => $workOrder->jenis_motor,
                 'plat_nomor' => $workOrder->plat_nomor,
                 'total_kwitansi' => collect($validated['items'])->sum(fn (array $item): float => (float) $item['qty'] * (float) $item['unit_price']),
+                'is_paid' => false,
+                'paid_at' => null,
             ]);
 
             foreach ($validated['items'] as $item) {
@@ -143,6 +151,32 @@ class KwitansiController extends Controller
         });
 
         return redirect()->route('kwitansi.index')->with('success', 'Kwitansi berhasil dibuat.');
+    }
+
+    public function exportPdf(Kwitansi $kwitansi): View
+    {
+        $kwitansi->load(['workOrder:id,user_id,no_wo', 'items']);
+        $this->ensureCanView($kwitansi);
+
+        return view('kwitansi.pdf', [
+            'kwitansi' => $kwitansi,
+        ]);
+    }
+
+    public function togglePaid(Kwitansi $kwitansi): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $isPaid = ! $kwitansi->is_paid;
+        $kwitansi->update([
+            'is_paid' => $isPaid,
+            'paid_at' => $isPaid ? now() : null,
+        ]);
+
+        return redirect()->route('kwitansi.index')->with(
+            'success',
+            $isPaid ? 'Invoice berhasil diubah menjadi lunas.' : 'Invoice berhasil diubah menjadi belum lunas.'
+        );
     }
 
     private function generateInvoiceNumber(): string

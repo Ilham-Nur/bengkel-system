@@ -55,7 +55,9 @@
                     <th>Nama Customer</th>
                     <th>Tanggal</th>
                     <th>Plat Nomor</th>
+                    <th>Status</th>
                     <th>Total</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,11 +68,31 @@
                         <td>{{ $item->customer_name }}</td>
                         <td>{{ $item->tanggal }}</td>
                         <td>{{ $item->plat_nomor }}</td>
+                        <td>
+                            @if ($item->is_paid)
+                                <span class="status done">Lunas</span>
+                            @else
+                                <span class="status draft">Belum Lunas</span>
+                            @endif
+                        </td>
                         <td>Rp {{ number_format($item->total_kwitansi, 0, ',', '.') }}</td>
+                        <td>
+                            <a href="{{ route('kwitansi.pdf', $item) }}" target="_blank" class="btn btn-light"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+                            @if ($role === 'admin')
+                                <form action="{{ route('kwitansi.toggle-paid', $item) }}" method="POST" class="inline-form" style="display:inline-block;">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button class="btn {{ $item->is_paid ? 'btn-warning' : 'btn-success' }}" type="submit">
+                                        <i class="bi bi-patch-check"></i>
+                                        {{ $item->is_paid ? 'Jadikan Belum Lunas' : 'Set Lunas' }}
+                                    </button>
+                                </form>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" style="text-align:center; color:#64748b;">Belum ada data invoice.</td>
+                        <td colspan="8" style="text-align:center; color:#64748b;">Belum ada data invoice.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -85,7 +107,21 @@
                 <div class="kv"><span class="key">Customer</span><strong>{{ $item->customer_name }}</strong></div>
                 <div class="kv"><span class="key">Tanggal</span><span>{{ $item->tanggal }}</span></div>
                 <div class="kv"><span class="key">Plat</span><span>{{ $item->plat_nomor }}</span></div>
+                <div class="kv"><span class="key">Status</span><span class="status {{ $item->is_paid ? 'done' : 'draft' }}">{{ $item->is_paid ? 'Lunas' : 'Belum Lunas' }}</span></div>
                 <div class="kv"><span class="key">Total</span><strong>Rp {{ number_format($item->total_kwitansi, 0, ',', '.') }}</strong></div>
+                <div style="display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.65rem;">
+                    <a href="{{ route('kwitansi.pdf', $item) }}" target="_blank" class="btn btn-light"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+                    @if ($role === 'admin')
+                        <form action="{{ route('kwitansi.toggle-paid', $item) }}" method="POST" class="inline-form">
+                            @csrf
+                            @method('PATCH')
+                            <button class="btn {{ $item->is_paid ? 'btn-warning' : 'btn-success' }}" type="submit">
+                                <i class="bi bi-patch-check"></i>
+                                {{ $item->is_paid ? 'Jadikan Belum Lunas' : 'Set Lunas' }}
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </article>
         @empty
             <article class="info-card" style="text-align:center; color:#64748b;">Belum ada data invoice.</article>
