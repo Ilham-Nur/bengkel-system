@@ -188,6 +188,7 @@
     .filter-actions-inline { display:flex; gap:.5rem; flex-wrap:wrap; align-items:end; }
     .search-field { min-width: 0; }
     .filter-modal { position: fixed; inset: 0; z-index: 40; display:flex; align-items:center; justify-content:center; padding: 1rem; }
+    .filter-modal[hidden] { display: none !important; }
     .filter-modal-backdrop { position:absolute; inset:0; background:rgba(15, 23, 42, .42); }
     .filter-modal-card { position:relative; width:min(560px, 100%); background:#fff; border-radius:14px; box-shadow: var(--shadow); padding:1rem; }
     .filter-modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.8rem; }
