@@ -13,7 +13,7 @@
     <div class="panel-head">
         <strong>List Invoice</strong>
         @if ($role === 'admin')
-            <button class="btn btn-primary"><i class="bi bi-plus-circle"></i> Buat Invoice</button>
+            <a href="{{ route('kwitansi.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Buat Invoice</a>
         @endif
     </div>
 
@@ -21,7 +21,7 @@
         <form method="GET" action="{{ route('kwitansi.index') }}" class="filter-grid">
             <div>
                 <label for="q">Pencarian</label>
-                <input class="input" id="q" name="q" value="{{ $filters['q'] }}" placeholder="No invoice, nama, plat">
+                <input class="input" id="q" name="q" value="{{ $filters['q'] }}" placeholder="No invoice, nama, plat, no wo">
             </div>
             <div>
                 <label for="start_date">Dari Tanggal</label>
@@ -51,30 +51,26 @@
             <thead>
                 <tr>
                     <th>No Invoice</th>
+                    <th>No WO</th>
                     <th>Nama Customer</th>
                     <th>Tanggal</th>
                     <th>Plat Nomor</th>
-                    <th>Aksi</th>
+                    <th>Total</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($rows as $item)
                     <tr>
-                        <td>{{ $item['invoice'] }}</td>
-                        <td>{{ $item['nama'] }}</td>
-                        <td>{{ $item['tanggal'] }}</td>
-                        <td>{{ $item['plat'] }}</td>
-                        <td>
-                            <button class="btn btn-light"><i class="bi bi-eye"></i> Detail</button>
-                            @if ($role === 'admin')
-                                <button class="btn btn-light"><i class="bi bi-printer"></i> Print</button>
-                                <button class="btn btn-success btn-lunas"><i class="bi bi-patch-check"></i> Stamp Lunas</button>
-                            @endif
-                        </td>
+                        <td>{{ $item->no_invoice }}</td>
+                        <td>{{ $item->workOrder?->no_wo ?? '-' }}</td>
+                        <td>{{ $item->customer_name }}</td>
+                        <td>{{ $item->tanggal }}</td>
+                        <td>{{ $item->plat_nomor }}</td>
+                        <td>Rp {{ number_format($item->total_kwitansi, 0, ',', '.') }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" style="text-align:center; color:#64748b;">Belum ada data invoice.</td>
+                        <td colspan="6" style="text-align:center; color:#64748b;">Belum ada data invoice.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -84,17 +80,12 @@
     <div class="card-list">
         @forelse ($rows as $item)
             <article class="info-card">
-                <h4>{{ $item['invoice'] }}</h4>
-                <div class="kv"><span class="key">Customer</span><strong>{{ $item['nama'] }}</strong></div>
-                <div class="kv"><span class="key">Tanggal</span><span>{{ $item['tanggal'] }}</span></div>
-                <div class="kv"><span class="key">Plat</span><span>{{ $item['plat'] }}</span></div>
-                <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.6rem;">
-                    <button class="btn btn-light"><i class="bi bi-eye"></i> Detail</button>
-                    @if ($role === 'admin')
-                        <button class="btn btn-light"><i class="bi bi-printer"></i> Print</button>
-                        <button class="btn btn-success btn-lunas"><i class="bi bi-patch-check"></i> Stamp Lunas</button>
-                    @endif
-                </div>
+                <h4>{{ $item->no_invoice }}</h4>
+                <div class="kv"><span class="key">No WO</span><span>{{ $item->workOrder?->no_wo ?? '-' }}</span></div>
+                <div class="kv"><span class="key">Customer</span><strong>{{ $item->customer_name }}</strong></div>
+                <div class="kv"><span class="key">Tanggal</span><span>{{ $item->tanggal }}</span></div>
+                <div class="kv"><span class="key">Plat</span><span>{{ $item->plat_nomor }}</span></div>
+                <div class="kv"><span class="key">Total</span><strong>Rp {{ number_format($item->total_kwitansi, 0, ',', '.') }}</strong></div>
             </article>
         @empty
             <article class="info-card" style="text-align:center; color:#64748b;">Belum ada data invoice.</article>
@@ -117,11 +108,4 @@
         .filter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
 </style>
-<script>
-    document.querySelectorAll('.btn-lunas').forEach((button) => {
-        button.addEventListener('click', () => {
-            Swal.fire('Berhasil', 'Invoice berhasil distamp lunas.', 'success');
-        });
-    });
-</script>
 @endpush

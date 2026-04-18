@@ -2,16 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kwitansi;
+use App\Models\WorkOrder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class KwitansiController extends Controller
 {
+    private function ensureAdmin(): void
+    {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+    }
+
     public function index(Request $request): View
     {
-        $query = trim((string) $request->string('q', ''));
+        $user = $request->user();
+        $search = trim((string) $request->string('q', ''));
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $perPage = (int) $request->input('per_page', 10);
@@ -20,46 +28,132 @@ class KwitansiController extends Controller
             $perPage = 10;
         }
 
-        $rows = collect([
-            ['invoice' => 'INV-2026-0012', 'nama' => 'Budi Santoso', 'plat' => 'B 1234 XYZ', 'tanggal' => '2026-04-04'],
-            ['invoice' => 'INV-2026-0013', 'nama' => 'Rina Wijaya', 'plat' => 'D 8888 KM', 'tanggal' => '2026-04-09'],
-            ['invoice' => 'INV-2026-0014', 'nama' => 'Andi Pratama', 'plat' => 'F 7771 AQ', 'tanggal' => '2026-04-12'],
-            ['invoice' => 'INV-2026-0015', 'nama' => 'Sari Ananda', 'plat' => 'B 4472 CK', 'tanggal' => '2026-04-15'],
-            ['invoice' => 'INV-2026-0016', 'nama' => 'Rudi Hartono', 'plat' => 'E 1620 PJ', 'tanggal' => '2026-04-16'],
-        ]);
+        $query = Kwitansi::query()
+            ->with(['workOrder:id,user_id,no_wo', 'workOrder.customer:id,name'])
+            ->latest('tanggal')
+            ->latest();
 
-        $filteredRows = $rows
-            ->when($query !== '', function (Collection $collection) use ($query): Collection {
-                return $collection->filter(function (array $row) use ($query): bool {
-                    return str_contains(strtolower($row['invoice']), strtolower($query))
-                        || str_contains(strtolower($row['nama']), strtolower($query))
-                        || str_contains(strtolower($row['plat']), strtolower($query));
-                });
-            })
-            ->when(filled($startDate), fn (Collection $collection) => $collection->filter(fn (array $row): bool => $row['tanggal'] >= $startDate))
-            ->when(filled($endDate), fn (Collection $collection) => $collection->filter(fn (array $row): bool => $row['tanggal'] <= $endDate))
-            ->sortByDesc('tanggal')
-            ->values();
+        if (! $user?->isAdmin()) {
+            $query->whereHas('workOrder', fn ($workOrderQuery) => $workOrderQuery->where('user_id', $user?->id));
+        }
 
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $currentItems = $filteredRows->forPage($currentPage, $perPage)->values();
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('no_invoice', 'like', "%{$search}%")
+                    ->orWhere('customer_name', 'like', "%{$search}%")
+                    ->orWhere('plat_nomor', 'like', "%{$search}%")
+                    ->orWhereHas('workOrder', fn ($workOrderQuery) => $workOrderQuery->where('no_wo', 'like', "%{$search}%"));
+            });
+        }
 
-        $paginatedRows = new LengthAwarePaginator(
-            items: $currentItems,
-            total: $filteredRows->count(),
-            perPage: $perPage,
-            currentPage: $currentPage,
-            options: ['path' => $request->url(), 'query' => $request->query()]
-        );
+        if (filled($startDate)) {
+            $query->whereDate('tanggal', '>=', $startDate);
+        }
+
+        if (filled($endDate)) {
+            $query->whereDate('tanggal', '<=', $endDate);
+        }
 
         return view('kwitansi.index', [
-            'rows' => $paginatedRows,
+            'rows' => $query->paginate($perPage)->withQueryString(),
             'filters' => [
-                'q' => $query,
+                'q' => $search,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'per_page' => $perPage,
             ],
         ]);
+    }
+
+    public function create(Request $request): View
+    {
+        $this->ensureAdmin();
+
+        $workOrderId = $request->integer('work_order_id');
+
+        $workOrderQuery = WorkOrder::query()
+            ->with(['customer:id,name,username', 'complaintItems:id,work_order_id,keluhan_item,estimasi_biaya'])
+            ->whereDoesntHave('kwitansi')
+            ->latest('tanggal')
+            ->latest();
+
+        $workOrder = $workOrderId
+            ? (clone $workOrderQuery)->whereKey($workOrderId)->first()
+            : (clone $workOrderQuery)->first();
+
+        $availableWorkOrders = (clone $workOrderQuery)
+            ->limit(50)
+            ->get(['id', 'no_wo', 'tanggal', 'user_id', 'jenis_motor', 'plat_nomor']);
+
+        if ($workOrder && ! $workOrder->relationLoaded('complaintItems')) {
+            $workOrder->load(['customer:id,name,username', 'complaintItems:id,work_order_id,keluhan_item,estimasi_biaya']);
+        }
+
+        return view('kwitansi.create', [
+            'generatedInvoiceNo' => $this->generateInvoiceNumber(),
+            'workOrder' => $workOrder,
+            'availableWorkOrders' => $availableWorkOrders,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $validated = $request->validate([
+            'work_order_id' => ['required', 'exists:work_orders,id'],
+            'tanggal' => ['required', 'date'],
+            'no_invoice' => ['required', 'string', 'max:50', 'unique:kwitansis,no_invoice'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.item_name' => ['required', 'string'],
+            'items.*.qty' => ['required', 'integer', 'min:1'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $workOrder = WorkOrder::query()
+            ->with(['customer:id,name,username'])
+            ->whereKey($validated['work_order_id'])
+            ->firstOrFail();
+
+        abort_if($workOrder->kwitansi()->exists(), 422, 'Work order ini sudah memiliki kwitansi.');
+
+        DB::transaction(function () use ($validated, $workOrder): void {
+            $kwitansi = Kwitansi::query()->create([
+                'no_invoice' => $validated['no_invoice'],
+                'work_order_id' => $workOrder->id,
+                'tanggal' => $validated['tanggal'],
+                'customer_name' => $workOrder->customer?->name ?? '-',
+                'customer_phone' => $workOrder->customer?->username,
+                'jenis_motor' => $workOrder->jenis_motor,
+                'plat_nomor' => $workOrder->plat_nomor,
+                'total_kwitansi' => collect($validated['items'])->sum(fn (array $item): float => (float) $item['qty'] * (float) $item['unit_price']),
+            ]);
+
+            foreach ($validated['items'] as $item) {
+                $qty = (int) $item['qty'];
+                $unitPrice = (float) $item['unit_price'];
+
+                $kwitansi->items()->create([
+                    'item_name' => $item['item_name'],
+                    'qty' => $qty,
+                    'unit_price' => $unitPrice,
+                    'subtotal' => $qty * $unitPrice,
+                ]);
+            }
+        });
+
+        return redirect()->route('kwitansi.index')->with('success', 'Kwitansi berhasil dibuat.');
+    }
+
+    private function generateInvoiceNumber(): string
+    {
+        $prefix = 'INV-' . now()->format('Ymd') . '-';
+        $lastNumber = Kwitansi::query()
+            ->where('no_invoice', 'like', $prefix . '%')
+            ->pluck('no_invoice')
+            ->map(fn (string $noInvoice): int => (int) substr($noInvoice, -4))
+            ->max() ?? 0;
+
+        return $prefix . str_pad((string) ($lastNumber + 1), 4, '0', STR_PAD_LEFT);
     }
 }

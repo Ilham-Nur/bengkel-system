@@ -93,6 +93,11 @@
                             <a href="{{ route('laporan.show', $item) }}" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
                             @if ($role === 'admin')
                                 <a href="{{ route('laporan.form', $item) }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah Laporan</a>
+                                @if ($item->kwitansi)
+                                    <a href="{{ route('kwitansi.index', ['q' => $item->kwitansi->no_invoice]) }}" class="btn btn-success"><i class="bi bi-receipt"></i> Sudah Jadi Kwitansi</a>
+                                @else
+                                    <a href="{{ route('kwitansi.create', ['work_order_id' => $item->id]) }}" class="btn btn-warning"><i class="bi bi-receipt"></i> Convert ke Kwitansi</a>
+                                @endif
                             @endif
                         </td>
                     </tr>
@@ -139,6 +144,11 @@
                     <a href="{{ route('laporan.show', $item) }}" class="btn btn-light"><i class="bi bi-eye"></i> Detail</a>
                     @if ($role === 'admin')
                         <a href="{{ route('laporan.form', $item) }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah Laporan</a>
+                        @if ($item->kwitansi)
+                            <a href="{{ route('kwitansi.index', ['q' => $item->kwitansi->no_invoice]) }}" class="btn btn-success"><i class="bi bi-receipt"></i> Sudah Jadi Kwitansi</a>
+                        @else
+                            <a href="{{ route('kwitansi.create', ['work_order_id' => $item->id]) }}" class="btn btn-warning"><i class="bi bi-receipt"></i> Convert ke Kwitansi</a>
+                        @endif
                     @endif
                 </div>
             </article>

@@ -33,5 +33,11 @@ class WorkOrder extends Model
     {
         return $this->hasOne(ServiceReport::class);
     }
+
+    public function kwitansi(): HasOne
+    {
+        return $this->hasOne(Kwitansi::class);
+    }
+
 }
 
