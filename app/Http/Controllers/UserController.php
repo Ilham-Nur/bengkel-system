@@ -18,7 +18,28 @@ class UserController extends Controller
     {
         $this->ensureAdmin();
 
-        $users = User::query()->latest()->get();
+        $query = trim((string) $request->string('q', ''));
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $perPage = (int) $request->input('per_page', 10);
+
+        if (! in_array($perPage, [5, 10, 25], true)) {
+            $perPage = 10;
+        }
+
+        $users = User::query()
+            ->when($query !== '', function ($builder) use ($query): void {
+                $builder->where(function ($nested) use ($query): void {
+                    $nested->where('name', 'like', "%{$query}%")
+                        ->orWhere('username', 'like', "%{$query}%")
+                        ->orWhere('email', 'like', "%{$query}%");
+                });
+            })
+            ->when(filled($startDate), fn ($builder) => $builder->whereDate('created_at', '>=', $startDate))
+            ->when(filled($endDate), fn ($builder) => $builder->whereDate('created_at', '<=', $endDate))
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
         $editUser = null;
 
         if ($request->filled('edit')) {
@@ -28,6 +49,12 @@ class UserController extends Controller
         return view('user.index', [
             'users' => $users,
             'editUser' => $editUser,
+            'filters' => [
+                'q' => $query,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 

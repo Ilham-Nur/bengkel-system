@@ -13,6 +13,7 @@
 <section class="panel">
     <div class="panel-head">
         <strong>Daftar Work Order untuk Laporan</strong>
+        <button class="btn btn-light" type="button" id="open-laporan-filter"><i class="bi bi-funnel"></i> Filter</button>
     </div>
 
     <div class="table-wrap desktop-only">
@@ -125,7 +126,63 @@
 @endsection
 
 @push('scripts')
+<script>
+    document.getElementById('open-laporan-filter')?.addEventListener('click', () => {
+        Swal.fire({
+            title: 'Filter Laporan',
+            html: `
+                <div class="modal-filter-grid">
+                    <div>
+                        <label for="modal-q">Pencarian</label>
+                        <input class="input" id="modal-q" placeholder="No WO, customer, plat, motor" value="{{ e($filters['q']) }}">
+                    </div>
+                    <div>
+                        <label for="modal-start-date">Dari Tanggal WO</label>
+                        <input class="input" id="modal-start-date" type="date" value="{{ $filters['start_date'] }}">
+                    </div>
+                    <div>
+                        <label for="modal-end-date">Sampai Tanggal WO</label>
+                        <input class="input" id="modal-end-date" type="date" value="{{ $filters['end_date'] }}">
+                    </div>
+                    <div>
+                        <label for="modal-per-page">Data / Halaman</label>
+                        <select class="input" id="modal-per-page">
+                            <option value="5" {{ (int) $filters['per_page'] === 5 ? 'selected' : '' }}>5</option>
+                            <option value="10" {{ (int) $filters['per_page'] === 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ (int) $filters['per_page'] === 25 ? 'selected' : '' }}>25</option>
+                        </select>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: 'Terapkan',
+            denyButtonText: 'Reset',
+            cancelButtonText: 'Tutup',
+            preConfirm: () => {
+                const params = new URLSearchParams();
+                const q = document.getElementById('modal-q')?.value.trim();
+                const startDate = document.getElementById('modal-start-date')?.value;
+                const endDate = document.getElementById('modal-end-date')?.value;
+                const perPage = document.getElementById('modal-per-page')?.value;
+
+                if (q) params.set('q', q);
+                if (startDate) params.set('start_date', startDate);
+                if (endDate) params.set('end_date', endDate);
+                if (perPage) params.set('per_page', perPage);
+
+                window.location.href = `{{ route('laporan.index') }}${params.toString() ? `?${params.toString()}` : ''}`;
+            },
+        }).then((result) => {
+            if (result.isDenied) {
+                window.location.href = '{{ route('laporan.index') }}';
+            }
+        });
+    });
+</script>
 <style>
+    .modal-filter-grid { display:grid; gap:.7rem; text-align:left; }
+    .modal-filter-grid label { margin:0; }
     .pagination-wrap { padding: .9rem 1rem 1rem; }
     .progress-wrap { min-width: 150px; }
     .progress-track { width: 100%; height: 9px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }

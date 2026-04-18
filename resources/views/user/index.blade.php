@@ -59,6 +59,7 @@
     <section class="panel">
         <div class="panel-head">
             <strong>List User</strong>
+            <button class="btn btn-light" type="button" id="open-user-filter"><i class="bi bi-funnel"></i> Filter</button>
         </div>
 
         <div class="table-wrap desktop-only">
@@ -117,10 +118,19 @@
                 <article class="info-card" style="color:var(--muted);">Belum ada data user.</article>
             @endforelse
         </div>
+
+        <div class="pagination-wrap">
+            {{ $users->links() }}
+        </div>
     </section>
 @endsection
 
 @push('scripts')
+<style>
+    .pagination-wrap { padding: .9rem 1rem 1rem; }
+    .modal-filter-grid { display:grid; gap:.7rem; text-align:left; }
+    .modal-filter-grid label { margin:0; }
+</style>
 <script>
     const errorMessages = @json($errors->all());
     const successMessage = @json(session('success'));
@@ -158,6 +168,59 @@
                     form.submit();
                 }
             });
+        });
+    });
+
+    document.getElementById('open-user-filter')?.addEventListener('click', () => {
+        Swal.fire({
+            title: 'Filter Data User',
+            html: `
+                <div class="modal-filter-grid">
+                    <div>
+                        <label for="modal-q">Pencarian</label>
+                        <input class="input" id="modal-q" placeholder="Nama, username, email" value="{{ e($filters['q']) }}">
+                    </div>
+                    <div>
+                        <label for="modal-start-date">Dari Tanggal</label>
+                        <input class="input" id="modal-start-date" type="date" value="{{ $filters['start_date'] }}">
+                    </div>
+                    <div>
+                        <label for="modal-end-date">Sampai Tanggal</label>
+                        <input class="input" id="modal-end-date" type="date" value="{{ $filters['end_date'] }}">
+                    </div>
+                    <div>
+                        <label for="modal-per-page">Data / Halaman</label>
+                        <select class="input" id="modal-per-page">
+                            <option value="5" {{ (int) $filters['per_page'] === 5 ? 'selected' : '' }}>5</option>
+                            <option value="10" {{ (int) $filters['per_page'] === 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ (int) $filters['per_page'] === 25 ? 'selected' : '' }}>25</option>
+                        </select>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: 'Terapkan',
+            denyButtonText: 'Reset',
+            cancelButtonText: 'Tutup',
+            preConfirm: () => {
+                const params = new URLSearchParams();
+                const q = document.getElementById('modal-q')?.value.trim();
+                const startDate = document.getElementById('modal-start-date')?.value;
+                const endDate = document.getElementById('modal-end-date')?.value;
+                const perPage = document.getElementById('modal-per-page')?.value;
+
+                if (q) params.set('q', q);
+                if (startDate) params.set('start_date', startDate);
+                if (endDate) params.set('end_date', endDate);
+                if (perPage) params.set('per_page', perPage);
+
+                window.location.href = `{{ route('user.index') }}${params.toString() ? `?${params.toString()}` : ''}`;
+            },
+        }).then((result) => {
+            if (result.isDenied) {
+                window.location.href = '{{ route('user.index') }}';
+            }
         });
     });
 </script>

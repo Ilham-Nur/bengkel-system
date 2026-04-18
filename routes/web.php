@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\KwitansiController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkOrderController;
@@ -28,7 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/{workorder}/form', [LaporanController::class, 'form'])->name('laporan.form');
     Route::get('/laporan/{workorder}/detail', [LaporanController::class, 'show'])->name('laporan.show');
     Route::post('/laporan/{workorder}', [LaporanController::class, 'save'])->name('laporan.save');
-    Route::view('/kwitansi', 'kwitansi.index')->name('kwitansi.index');
+    Route::get('/kwitansi', [KwitansiController::class, 'index'])->name('kwitansi.index');
 
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
     Route::post('/user', [UserController::class, 'store'])->name('user.store');
