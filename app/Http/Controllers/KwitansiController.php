@@ -155,7 +155,7 @@ class KwitansiController extends Controller
 
     public function exportPdf(Kwitansi $kwitansi): View
     {
-        $kwitansi->load(['workOrder:id,user_id,no_wo', 'items']);
+        $kwitansi->load(['workOrder:id,user_id,no_wo,km_motor', 'items']);
         $this->ensureCanView($kwitansi);
 
         return view('kwitansi.pdf', [
